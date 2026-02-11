@@ -94,7 +94,7 @@ user_context = """
 
 ## 参考リンク
 
-- [100 TIMES AI WORLD BUILDING - note版]([https://note.com/msfmnkns/n/n26ddda02e0d2])
+- 100 TIMES AI WORLD BUILDING - note版(https://note.com/msfmnkns/n/n26ddda02e0d2)
 
 ## 必要要件
 
