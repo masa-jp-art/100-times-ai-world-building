@@ -1,0 +1,182 @@
+# ========================================
+# Ollama Configuration
+# 100 TIMES AI WORLD BUILDING - Local Version
+# ========================================
+
+# Server Configuration
+# ----------------------------------------
+server:
+  host: "http://localhost"
+  port: 11434
+  timeout: 300  # seconds (5 minutes)
+  max_retries: 3
+  retry_delay: 5  # seconds
+
+# Model Configuration
+# ----------------------------------------
+model:
+  # Primary model name
+  name: "gpt-oss:20b"
+
+  # Alternative models (for fallback or user selection)
+  alternatives:
+    - "gpt-oss:20b-q4"  # 4-bit quantized (lighter)
+    - "gpt-oss:20b-q8"  # 8-bit quantized
+    - "llama3:70b"      # Alternative model
+    - "mistral:latest"  # Alternative model
+
+  # Default generation parameters
+  generation:
+    temperature: 0.7
+    top_p: 0.9
+    top_k: 40
+    num_predict: 4096  # max tokens to generate
+    repeat_penalty: 1.1
+    seed: null  # null for non-deterministic, set integer for reproducibility
+
+# Phase-specific configurations
+# ----------------------------------------
+phases:
+  # Phase 0: User context extraction
+  phase0_context_extraction:
+    temperature: 0.7
+    num_predict: 2048
+    format: "json"
+
+  # Phase 1: 100x expansion
+  phase1_expansion:
+    temperature: 0.8
+    num_predict: 4096
+    format: "json"
+    batch_size: 5  # Number of parallel requests (if supported)
+
+  # Phase 2: Character generation
+  phase2_characters:
+    temperature: 0.9
+    num_predict: 2048
+    format: "json"
+
+  # Phase 3: World building
+  phase3_world:
+    temperature: 0.7
+    num_predict: 4096
+    format: "json"
+    cumulative_context: true  # Use accumulated context
+
+  # Phase 4: Plot generation
+  phase4_plot:
+    temperature: 0.8
+    num_predict: 3072
+    format: "json"
+
+  # Phase 5: Novel generation
+  phase5_novel:
+    temperature: 1.0  # High creativity for storytelling
+    num_predict: 4096
+    format: ""  # Free text
+    streaming: false  # Set true for real-time output
+
+  # Phase 6: Reference material generation
+  phase6_references:
+    temperature: 0.7
+    num_predict: 4096
+    format: ""  # Markdown output
+
+# Performance Optimization
+# ----------------------------------------
+performance:
+  # Enable GPU acceleration (auto-detected by Ollama)
+  gpu_enabled: true
+
+  # Number of GPU layers to offload (null = auto)
+  num_gpu_layers: null
+
+  # Maximum parallel requests
+  max_parallel_requests: 3
+
+  # Context caching
+  use_context_cache: true
+  cache_ttl: 3600  # seconds (1 hour)
+
+  # Memory management
+  max_context_length: 8192  # tokens
+  truncate_strategy: "sliding_window"  # or "priority"
+
+# Checkpointing
+# ----------------------------------------
+checkpointing:
+  enabled: true
+  auto_save: true
+  save_interval: 1  # Save after every N API calls
+  output_dir: "./output/checkpoints"
+  compression: false  # Set true to compress checkpoint files
+
+# Logging
+# ----------------------------------------
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/local_v2.log"
+  console: true
+
+# Output Configuration
+# ----------------------------------------
+output:
+  base_dir: "./output"
+  subdirs:
+    intermediate: "intermediate"
+    checkpoints: "checkpoints"
+    novels: "novels"
+    references: "references"
+
+  # File formats
+  formats:
+    intermediate: "yaml"  # yaml or json
+    novels: "txt"         # txt or md
+    references: "md"      # md or txt
+
+  # Naming conventions
+  naming:
+    timestamp: true
+    prefix: ""
+    suffix: ""
+
+# Safety and Validation
+# ----------------------------------------
+safety:
+  # Validate JSON outputs
+  validate_json: true
+  max_validation_retries: 3
+
+  # Content filtering (basic)
+  enable_content_filter: false
+
+  # Rate limiting (to prevent system overload)
+  rate_limit:
+    enabled: true
+    max_requests_per_minute: 20
+
+# Development Mode
+# ----------------------------------------
+development:
+  debug: false
+  mock_api_calls: false  # Set true to test without actual API calls
+  save_prompts: true     # Save all prompts for debugging
+  verbose_errors: true
+
+# Feature Flags
+# ----------------------------------------
+features:
+  # Enable experimental features
+  parallel_processing: true
+  streaming_output: false
+  multi_model_ensemble: false
+
+  # Phase toggles (for selective execution)
+  enable_phase0: true
+  enable_phase1: true
+  enable_phase2: true
+  enable_phase3: true
+  enable_phase4: true
+  enable_phase5: true
+  enable_phase6: true
