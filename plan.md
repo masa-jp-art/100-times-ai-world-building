@@ -9,10 +9,10 @@
 ### 現在の関数シグネチャ
 
 ```python
-# Cell 2 で定義されている3つの推論関数
-def o4(prompt)        # OpenAI o4-mini, JSON出力, パラメータ固定
-def o4md(prompt)      # OpenAI o4-mini, Markdown出力, パラメータ固定
-def claude(prompt)    # Claude 3.7 Sonnet, max_tokens=16000, temperature=1 固定
+# Cell 2 で定義されている3つの推論関数（モデルは gpt-oss:20b に変更済み）
+def o4(prompt)        # gpt-oss:20b, JSON出力, パラメータ固定
+def o4md(prompt)      # gpt-oss:20b, Markdown出力, パラメータ固定
+def claude(prompt)    # gpt-oss:20b, max_tokens=16000, temperature=1 固定
 ```
 
 ### 問題点
@@ -89,7 +89,7 @@ def get_effort(task_name):
 
 ### Step 2: 推論関数にエフォートレベル引数を追加
 
-3つの推論関数すべてに `task_name` 引数を追加し、エフォートレベルに応じてパラメータを変える。
+3つの推論関数すべてに `task_name` 引数を追加し、エフォートレベルに応じて `max_tokens` と `temperature` を変える。
 
 #### `o4(prompt)` → `o4(prompt, task_name="default")`
 
@@ -98,33 +98,9 @@ def o4(prompt, task_name="default"):
     try:
         effort = get_effort(task_name)
         response = client.chat.completions.create(
-            model="o4-mini",
-            messages=[
-                {"role": "system", "content": "常に日本語で応答します。常にjson形式で応答します。"},
-                {"role": "user", "content": prompt},
-            ],
-            response_format={"type": "json_object"},
-        )
-        content = response.choices[0].message.content
-        data = json.loads(content)
-        return yaml.safe_dump(data, allow_unicode=True)
-    except Exception as e:
-        return f"エラーが発生しました: {str(e)}"
-```
-
-> **注:** o4-mini は Responses API / Chat Completions API で `max_tokens` や `temperature` の扱いが異なる。o4-mini は reasoning model のため `temperature` パラメータを直接受け取らない場合がある。その場合 `reasoning_effort`（`"low"`, `"medium"`, `"high"`）パラメータを使う。ここでは `get_effort()` で取得した値を使い、モデルが受け取れるパラメータに変換する。
-
-実装では、o4-mini の reasoning_effort パラメータ対応を考慮して以下のように修正:
-
-```python
-def o4(prompt, task_name="default"):
-    try:
-        effort = get_effort(task_name)
-        # o4-mini は reasoning model のため reasoning_effort を使用
-        level = TASK_EFFORT.get(task_name, "medium")
-        response = client.chat.completions.create(
-            model="o4-mini",
-            reasoning_effort=level,
+            model="gpt-oss:20b",
+            max_tokens=effort["max_tokens"],
+            temperature=effort["temperature"],
             messages=[
                 {"role": "system", "content": "常に日本語で応答します。常にjson形式で応答します。"},
                 {"role": "user", "content": prompt},
@@ -140,15 +116,14 @@ def o4(prompt, task_name="default"):
 
 #### `o4md(prompt)` → `o4md(prompt, task_name="default")`
 
-同様に `reasoning_effort` を追加。
-
 ```python
 def o4md(prompt, task_name="default"):
     try:
-        level = TASK_EFFORT.get(task_name, "medium")
+        effort = get_effort(task_name)
         response = client.responses.create(
-            model="o4-mini",
-            reasoning={"effort": level},
+            model="gpt-oss:20b",
+            max_tokens=effort["max_tokens"],
+            temperature=effort["temperature"],
             input=[
                 {"role": "system", "content": "常に日本語で応答します。常にMarkdown形式で応答します。"},
                 {"role": "user", "content": prompt},
@@ -161,25 +136,20 @@ def o4md(prompt, task_name="default"):
 
 #### `claude(prompt)` → `claude(prompt, task_name="default")`
 
-Claude は `max_tokens` と `temperature` をそのまま使用可能。
-
 ```python
 def claude(prompt, task_name="default"):
     try:
         effort = get_effort(task_name)
-        message = anthropic.messages.create(
-            model="claude-3-7-sonnet-latest",
+        message = client.chat.completions.create(
+            model="gpt-oss:20b",
             max_tokens=effort["max_tokens"],
             temperature=effort["temperature"],
-            system="常に表現力豊かな日本語で出力します。",
             messages=[
-                {
-                    "role": "user",
-                    "content": [{"type": "text", "text": prompt}]
-                }
-            ]
+                {"role": "system", "content": "常に表現力豊かな日本語で出力します。"},
+                {"role": "user", "content": prompt},
+            ],
         )
-        return message.content[0].text
+        return message.choices[0].message.content
     except Exception as e:
         return f"エラーが発生しました: {str(e)}"
 ```
