@@ -3,6 +3,7 @@ Tests for OllamaClient module
 """
 
 import pytest
+import requests
 from unittest.mock import Mock, patch
 from src.ollama_client import OllamaClient
 
@@ -76,13 +77,33 @@ class TestOllamaClient:
         assert result == {"key": "value"}
 
     @patch('requests.post')
-    def test_generate_retry_on_failure(self, mock_post):
-        """Test retry mechanism on failure"""
+    def test_generate_retry_on_timeout(self, mock_post):
+        """Test retry mechanism on timeout"""
         client = OllamaClient(max_retries=2, retry_delay=0)
 
-        # First call fails, second succeeds
-        mock_response_fail = Mock()
-        mock_response_fail.json.return_value = {"response": ""}
+        # First call times out, second succeeds
+        mock_response_success = Mock()
+        mock_response_success.status_code = 200
+        mock_response_success.json.return_value = {
+            "response": "Success"
+        }
+
+        mock_post.side_effect = [
+            requests.exceptions.Timeout("Connection timed out"),
+            mock_response_success,
+        ]
+
+        result = client.generate("Test prompt")
+        assert result == "Success"
+        assert mock_post.call_count == 2
+
+    @patch('requests.post')
+    def test_generate_retry_on_empty_response(self, mock_post):
+        """Test retry on empty response from model"""
+        client = OllamaClient(max_retries=2, retry_delay=0)
+
+        mock_response_empty = Mock()
+        mock_response_empty.json.return_value = {"response": ""}
 
         mock_response_success = Mock()
         mock_response_success.status_code = 200
@@ -90,10 +111,21 @@ class TestOllamaClient:
             "response": "Success"
         }
 
-        mock_post.side_effect = [mock_response_fail, mock_response_success]
+        mock_post.side_effect = [mock_response_empty, mock_response_success]
 
         result = client.generate("Test prompt")
         assert result == "Success"
+        assert mock_post.call_count == 2
+
+    @patch('requests.post')
+    def test_generate_all_retries_fail(self, mock_post):
+        """Test that None is returned when all retries are exhausted"""
+        client = OllamaClient(max_retries=2, retry_delay=0)
+
+        mock_post.side_effect = requests.exceptions.Timeout("Connection timed out")
+
+        result = client.generate("Test prompt")
+        assert result is None
         assert mock_post.call_count == 2
 
 

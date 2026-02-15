@@ -8,7 +8,7 @@ __author__ = "masa-jp-art"
 
 from .ollama_client import OllamaClient
 from .checkpoint_manager import CheckpointManager
-from .utils import load_config, load_prompts, data_to_markdown, rich_print
+from .utils import load_config, load_prompts, data_to_markdown, rich_print, setup_logging
 from .pipeline import Pipeline
 
 __all__ = [
@@ -19,4 +19,5 @@ __all__ = [
     "load_prompts",
     "data_to_markdown",
     "rich_print",
+    "setup_logging",
 ]
