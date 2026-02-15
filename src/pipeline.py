@@ -3,7 +3,10 @@ Pipeline Module
 Main pipeline orchestration for 100 TIMES AI WORLD BUILDING
 """
 
+import random
 from typing import Dict, Any, Optional
+
+import yaml as yaml_lib
 from loguru import logger
 from tqdm import tqdm
 
@@ -142,56 +145,30 @@ class Pipeline:
         phase_config = self.config.get("phases", {}).get("phase1_expansion", {})
         results = {}
 
-        # 1. Desire list
-        logger.info("Generating desire list...")
-        desire_prompt = self.prompts.get("desire_list", {})
-        if desire_prompt:
-            prompt = format_prompt(
-                desire_prompt.get("user", ""),
-                user_context=user_context
-            )
-            response = self.client.generate_json(
-                prompt,
-                temperature=phase_config.get("temperature", 0.8),
-                max_tokens=phase_config.get("num_predict", 4096),
-            )
-            if response:
-                results["desire_list"] = dict_to_yaml(response)
-                save_yaml(response, f"{self.base_dir}/intermediate/01_desire_list.yaml")
+        # 1-3. Generate desire, ability, and role lists
+        list_definitions = [
+            ("desire_list", "01_desire_list"),
+            ("ability_list", "02_ability_list"),
+            ("role_list", "03_role_list"),
+        ]
 
-        # 2. Ability list
-        logger.info("Generating ability list...")
-        ability_prompt = self.prompts.get("ability_list", {})
-        if ability_prompt:
-            prompt = format_prompt(
-                ability_prompt.get("user", ""),
-                user_context=user_context
-            )
-            response = self.client.generate_json(
-                prompt,
-                temperature=phase_config.get("temperature", 0.8),
-                max_tokens=phase_config.get("num_predict", 4096),
-            )
-            if response:
-                results["ability_list"] = dict_to_yaml(response)
-                save_yaml(response, f"{self.base_dir}/intermediate/02_ability_list.yaml")
-
-        # 3. Role list
-        logger.info("Generating role list...")
-        role_prompt = self.prompts.get("role_list", {})
-        if role_prompt:
-            prompt = format_prompt(
-                role_prompt.get("user", ""),
-                user_context=user_context
-            )
-            response = self.client.generate_json(
-                prompt,
-                temperature=phase_config.get("temperature", 0.8),
-                max_tokens=phase_config.get("num_predict", 4096),
-            )
-            if response:
-                results["role_list"] = dict_to_yaml(response)
-                save_yaml(response, f"{self.base_dir}/intermediate/03_role_list.yaml")
+        for prompt_key, filename in list_definitions:
+            logger.info(f"Generating {prompt_key}...")
+            list_prompt = self.prompts.get(prompt_key, {})
+            if list_prompt:
+                prompt = format_prompt(
+                    list_prompt.get("user", ""),
+                    user_context=user_context
+                )
+                response = self.client.generate_json(
+                    prompt,
+                    temperature=phase_config.get("temperature", 0.8),
+                    max_tokens=phase_config.get("num_predict", 4096),
+                    system_prompt=list_prompt.get("system", None),
+                )
+                if response:
+                    results[prompt_key] = dict_to_yaml(response)
+                    save_yaml(response, f"{self.base_dir}/intermediate/{filename}.yaml")
 
         # 4. Plot type list
         logger.info("Generating plot type list...")
@@ -202,6 +179,7 @@ class Pipeline:
                 prompt,
                 temperature=phase_config.get("temperature", 0.8),
                 max_tokens=phase_config.get("num_predict", 4096),
+                system_prompt=plottype_list_prompt.get("system", None),
             )
             if response:
                 results["plottype_list"] = dict_to_yaml(response)
@@ -220,6 +198,7 @@ class Pipeline:
                 prompt,
                 temperature=phase_config.get("temperature", 0.8),
                 max_tokens=phase_config.get("num_predict", 4096),
+                system_prompt=plottype_selection_prompt.get("system", None),
             )
             if response:
                 results["plottype"] = dict_to_yaml(response)
@@ -248,9 +227,6 @@ class Pipeline:
         phase_config = self.config.get("phases", {}).get("phase2_characters", {})
 
         # Sample from lists for character assignment
-        import random
-        import yaml as yaml_lib
-
         desire_data = yaml_lib.safe_load(phase1_results.get("desire_list", "desires: []"))
         ability_data = yaml_lib.safe_load(phase1_results.get("ability_list", "abilities: []"))
         role_data = yaml_lib.safe_load(phase1_results.get("role_list", "roles: []"))
@@ -273,6 +249,7 @@ class Pipeline:
                 prompt,
                 temperature=phase_config.get("temperature", 0.9),
                 max_tokens=phase_config.get("num_predict", 2048),
+                system_prompt=characters_prompt.get("system", None),
             )
             if response:
                 characters_yaml = dict_to_yaml(response)
@@ -311,7 +288,7 @@ class Pipeline:
             ("living_environment", {"social_structure": "social_structure"}),
             ("social_groups", {"social_structure": "social_structure", "living_environment": "living_environment"}),
             ("people_list", {"social_structure": "social_structure", "living_environment": "living_environment", "social_groups": "social_groups"}),
-            ("future_scenarios", {}),  # Uses all accumulated context
+            ("future_scenarios", {"events": "events", "observation": "observation", "interpretation": "interpretation", "media": "media", "important_past_events": "important_past_events", "social_structure": "social_structure", "living_environment": "living_environment", "social_groups": "social_groups", "people_list": "people_list"}),
         ]
 
         for i, (element_name, dependencies) in enumerate(elements, start=10):
@@ -333,6 +310,7 @@ class Pipeline:
                 prompt,
                 temperature=phase_config.get("temperature", 0.7),
                 max_tokens=phase_config.get("num_predict", 4096),
+                system_prompt=element_prompt.get("system", None),
             )
 
             if response:
@@ -439,6 +417,7 @@ class Pipeline:
                 prompt,
                 temperature=phase_config.get("temperature", 0.8),
                 max_tokens=phase_config.get("num_predict", 3072),
+                system_prompt=plot_prompt.get("system", None),
             )
             if response:
                 plot_data["plot"] = dict_to_yaml(response)
@@ -455,7 +434,10 @@ class Pipeline:
                     plot=plot_data["plot"],
                     chapter_number=chapter_num
                 )
-                chapter_response = self.client.generate_json(prompt)
+                chapter_response = self.client.generate_json(
+                    prompt,
+                    system_prompt=extract_prompt.get("system", None),
+                )
                 if chapter_response:
                     plot_data[f"plot_{chapter_num}"] = dict_to_yaml(chapter_response)
                     save_yaml(chapter_response, f"{self.base_dir}/intermediate/{20 + chapter_num}_plot_{chapter_num}.yaml")
@@ -467,7 +449,10 @@ class Pipeline:
                     keywords_prompt.get("user", ""),
                     chapter_plot=plot_data[f"plot_{chapter_num}"]
                 )
-                keywords_response = self.client.generate_json(prompt)
+                keywords_response = self.client.generate_json(
+                    prompt,
+                    system_prompt=keywords_prompt.get("system", None),
+                )
                 if keywords_response:
                     plot_data[f"plot_keywords_{chapter_num}"] = dict_to_yaml(keywords_response)
                     save_yaml(keywords_response, f"{self.base_dir}/intermediate/{30 + chapter_num}_plot_keywords_{chapter_num}.yaml")
@@ -478,9 +463,12 @@ class Pipeline:
                 prompt = format_prompt(
                     references_prompt.get("user", ""),
                     keywords=plot_data[f"plot_keywords_{chapter_num}"],
-                    world_data=str(world_data)[:2000]  # Truncate for context window
+                    world_data=dict_to_yaml(world_data)[:2000]
                 )
-                references_response = self.client.generate_json(prompt)
+                references_response = self.client.generate_json(
+                    prompt,
+                    system_prompt=references_prompt.get("system", None),
+                )
                 if references_response:
                     plot_data[f"plot_reference_{chapter_num}"] = dict_to_yaml(references_response)
                     save_yaml(references_response, f"{self.base_dir}/intermediate/{40 + chapter_num}_plot_reference_{chapter_num}.yaml")
