@@ -13,6 +13,56 @@ sys.path.insert(0, str(project_root))
 
 from src import Pipeline, setup_logging
 
+# ---------------------------------------------------------------------------
+# Local model options
+# ---------------------------------------------------------------------------
+LOCAL_MODELS = [
+    {
+        "name": "gpt-oss:20b",
+        "label": "gpt-oss:20b (standard – recommended)",
+        "description": "Full-precision 20B model. Best quality for most machines with ≥32 GB RAM or ≥16 GB VRAM.",
+    },
+    {
+        "name": "gpt-oss:20b-q8",
+        "label": "gpt-oss:20b-q8 (8-bit quantized)",
+        "description": "8-bit quantized 20B model. Balanced quality / memory trade-off (16–24 GB VRAM).",
+    },
+    {
+        "name": "gpt-oss:20b-q4",
+        "label": "gpt-oss:20b-q4 (4-bit quantized)",
+        "description": "4-bit quantized 20B model. Lowest memory footprint (8–16 GB VRAM).",
+    },
+    {
+        "name": "gpt-oss:120b",
+        "label": "gpt-oss:120b (high-end – powerful machines only)",
+        "description": "120B model. Highest generation quality. Requires ≥60 GB VRAM or very large RAM.",
+    },
+]
+
+
+def select_model() -> str:
+    """Interactive model selection menu.
+
+    Returns the chosen model name string.
+    """
+    print("\n--- Model Selection ---")
+    for i, m in enumerate(LOCAL_MODELS, 1):
+        print(f"{i}. {m['label']}")
+        print(f"   {m['description']}")
+    print()
+
+    while True:
+        try:
+            raw = input("Select model [1]: ").strip()
+            if raw == "":
+                return LOCAL_MODELS[0]["name"]
+            idx = int(raw) - 1
+            if 0 <= idx < len(LOCAL_MODELS):
+                return LOCAL_MODELS[idx]["name"]
+        except ValueError:
+            pass
+        print(f"Please enter a number between 1 and {len(LOCAL_MODELS)}.")
+
 
 def run_phase1_only():
     """Run only Phase 1 (100x expansion) for quick testing"""
@@ -20,11 +70,14 @@ def run_phase1_only():
     print("Running Phase 1 (100x Expansion) Only")
     print("=" * 60)
 
+    # Model selection
+    model = select_model()
+
     # Setup logging
     setup_logging(log_level="INFO", console=True)
 
-    # Initialize pipeline
-    pipeline = Pipeline()
+    # Initialize pipeline (a new run_id is generated automatically)
+    pipeline = Pipeline(model=model)
 
     # Check prerequisites
     if not pipeline.check_prerequisites():
@@ -55,7 +108,8 @@ context:
     for key in results.keys():
         print(f"  - {key}")
 
-    print("\nOutputs saved to: ./output/intermediate/")
+    print(f"\nOutputs saved to: {pipeline.base_dir}/intermediate/")
+    print(f"Run ID: {pipeline.run_id}")
     return 0
 
 
@@ -71,6 +125,9 @@ def run_full_pipeline():
         print("Cancelled.")
         return 0
 
+    # Model selection
+    model = select_model()
+
     # Setup logging
     setup_logging(
         log_level="INFO",
@@ -78,8 +135,8 @@ def run_full_pipeline():
         console=True
     )
 
-    # Initialize pipeline
-    pipeline = Pipeline()
+    # Initialize pipeline (a new run_id is generated automatically)
+    pipeline = Pipeline(model=model)
 
     # Check prerequisites
     if not pipeline.check_prerequisites():
@@ -106,11 +163,12 @@ context:
     print("\n" + "=" * 60)
     print("Full Pipeline Complete!")
     print("=" * 60)
-    print(f"\nGenerated outputs:")
-    print(f"  - Novels: ./output/novels/")
-    print(f"  - References: ./output/references/")
-    print(f"  - Intermediate data: ./output/intermediate/")
-    print(f"  - Checkpoints: ./output/checkpoints/")
+    print(f"\nRun ID: {pipeline.run_id}")
+    print(f"Generated outputs (all under {pipeline.base_dir}/):")
+    print(f"  - Novels:            {pipeline.base_dir}/novels/")
+    print(f"  - References:        {pipeline.base_dir}/references/")
+    print(f"  - Intermediate data: {pipeline.base_dir}/intermediate/")
+    print(f"  - Checkpoints:       {pipeline.base_dir}/checkpoints/")
 
     return 0
 
@@ -121,11 +179,14 @@ def resume_from_phase():
     print("Resume from Checkpoint")
     print("=" * 60)
 
+    # Model selection
+    model = select_model()
+
     # Setup logging
     setup_logging(log_level="INFO", console=True)
 
-    # Initialize pipeline
-    pipeline = Pipeline()
+    # Initialize pipeline (a new run_id is generated automatically)
+    pipeline = Pipeline(model=model)
 
     # List available checkpoints
     checkpoints = pipeline.checkpoint_manager.list_checkpoints()

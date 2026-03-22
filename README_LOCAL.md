@@ -11,6 +11,32 @@
 - ✅ **オフライン動作**: インターネット接続不要（初回モデルダウンロード後）
 - ✅ **カスタマイズ性**: モデルパラメータの細かい調整が可能
 - ✅ **チェックポイント機能**: 長時間実行でも中断・再開が可能
+- ✅ **実行ごと別ディレクトリ保存**: 何度実行しても過去の出力が上書きされない
+
+## モデル選択肢
+
+このプロジェクトでは、マシンのスペックに合わせて以下のモデルを選択できます。
+
+| モデル | 区分 | 必要VRAM / RAM | 特徴 |
+|--------|------|----------------|------|
+| `gpt-oss:20b` | **標準（デフォルト）** | ≥16 GB VRAM または ≥32 GB RAM | フル精度20Bモデル。最も高品質 |
+| `gpt-oss:20b-q8` | 8-bit量子化版 | 16〜24 GB VRAM | 品質とメモリのバランス型 |
+| `gpt-oss:20b-q4` | 4-bit量子化版 | 8〜16 GB VRAM | メモリ使用量最小 |
+| `gpt-oss:120b` | **高性能マシン向け** | ≥60 GB VRAM または大容量RAM | 120Bモデル。最高品質、要ハイエンド環境 |
+
+### モデルのダウンロード
+
+```bash
+# 標準モデル（デフォルト）
+ollama pull gpt-oss:20b
+
+# 量子化版（VRAMが限られている場合）
+ollama pull gpt-oss:20b-q8   # 8-bit量子化
+ollama pull gpt-oss:20b-q4   # 4-bit量子化
+
+# 高性能マシン向け（十分なVRAM / RAMがある場合）
+ollama pull gpt-oss:120b
+```
 
 ## システム要件
 
@@ -50,14 +76,18 @@ ollama serve
 
 別のターミナルウィンドウで実行してください。サーバーはバックグラウンドで動作します。
 
-### 3. gpt-oss:20bモデルのダウンロード
+### 3. モデルのダウンロード
 
 ```bash
 # フル精度版（推奨: 十分なVRAMがある場合）
 ollama pull gpt-oss:20b
 
-# または、4-bit量子化版（推奨: VRAMが限られている場合）
-ollama pull gpt-oss:20b-q4
+# または、量子化版（VRAMが限られている場合）
+ollama pull gpt-oss:20b-q8   # 8-bit量子化
+ollama pull gpt-oss:20b-q4   # 4-bit量子化
+
+# 高性能マシン向け
+ollama pull gpt-oss:120b
 ```
 
 ダウンロードには数GBのデータ転送があるため、時間がかかる場合があります。
@@ -104,6 +134,83 @@ jupyter notebook
 5. **結果を確認**: 生成されたリストを確認
 6. **完全パイプライン実行（オプション）**: Phase 2以降を実行（1.5〜8時間）
 
+### コマンドラインからの実行
+
+```bash
+python example_run.py
+```
+
+起動すると以下のメニューが表示されます:
+
+```
+100 TIMES AI WORLD BUILDING - Example Run
+
+Select an option:
+1. Run Phase 1 only (quick test, ~5-25 min)
+2. Run full pipeline (complete generation, ~1.5-8 hours)
+3. Resume from checkpoint
+4. Exit
+```
+
+いずれかを選択すると **モデル選択メニュー** が表示されます:
+
+```
+--- Model Selection ---
+1. gpt-oss:20b (standard – recommended)
+   Full-precision 20B model. Best quality for most machines with ≥32 GB RAM or ≥16 GB VRAM.
+2. gpt-oss:20b-q8 (8-bit quantized)
+   8-bit quantized 20B model. Balanced quality / memory trade-off (16–24 GB VRAM).
+3. gpt-oss:20b-q4 (4-bit quantized)
+   4-bit quantized 20B model. Lowest memory footprint (8–16 GB VRAM).
+4. gpt-oss:120b (high-end – powerful machines only)
+   120B model. Highest generation quality. Requires ≥60 GB VRAM or very large RAM.
+
+Select model [1]:
+```
+
+Enterを押すと `gpt-oss:20b`（デフォルト）が選択されます。
+
+### 実行ごとの出力ディレクトリ
+
+このプロジェクトは1回で完結するものではなく、**何度も実行してアイデアを探索する**ことを想定しています。そのため、各実行の出力は自動的に別ディレクトリへ保存されます:
+
+```
+output/
+├── run_20260101_120000/     ← 1回目の実行
+│   ├── intermediate/        # 中間データ (YAML)
+│   ├── checkpoints/         # チェックポイント (JSON)
+│   ├── novels/              # 生成された小説章
+│   └── references/          # 設定資料集
+├── run_20260102_093000/     ← 2回目の実行
+│   ├── intermediate/
+│   ├── checkpoints/
+│   ├── novels/
+│   └── references/
+└── run_20260103_150500/     ← 3回目の実行（以降同様）
+```
+
+実行後に `Run ID` が表示されるので、どのディレクトリが最新かすぐに分かります。
+
+### Pythonコードからの利用例
+
+```python
+from src import Pipeline
+
+# デフォルト (gpt-oss:20b) で実行
+pipeline = Pipeline()
+
+# 量子化版で実行
+pipeline = Pipeline(model="gpt-oss:20b-q8")
+
+# 高性能マシン向けモデルで実行
+pipeline = Pipeline(model="gpt-oss:120b")
+
+# 実行IDを固定（再現性が必要な場合）
+pipeline = Pipeline(run_id="my_experiment_01")
+
+print(f"出力先: {pipeline.base_dir}")  # ./output/run_YYYYMMDD_HHMMSS
+```
+
 ### ディレクトリ構成
 
 ```
@@ -121,16 +228,18 @@ jupyter notebook
 │   ├── utils.py             # ユーティリティ関数
 │   └── pipeline.py          # パイプライン制御
 ├── output/                   # 生成結果（Gitで管理されない）
-│   ├── intermediate/        # 中間データ
-│   ├── checkpoints/         # チェックポイント
-│   ├── novels/              # 生成された小説
-│   └── references/          # 設定資料集
+│   ├── run_YYYYMMDD_HHMMSS/ # 実行ごとの出力ディレクトリ
+│   │   ├── intermediate/    # 中間データ
+│   │   ├── checkpoints/     # チェックポイント
+│   │   ├── novels/          # 生成された小説
+│   │   └── references/      # 設定資料集
+│   └── ...
 └── tests/                    # テストファイル
 ```
 
 ## 設定のカスタマイズ
 
-### モデルの変更
+### モデルの変更（設定ファイル経由）
 
 `config/ollama_config.yaml`を編集:
 
@@ -182,6 +291,8 @@ performance:
   max_parallel_requests: 1  # 並列実行を無効化
 ```
 
+3. コマンドライン実行時は量子化モデルを選択（メニューの2番または3番）
+
 ### JSON出力が不正
 
 **エラー**: `JSONDecodeError`
@@ -210,10 +321,7 @@ performance:
   max_parallel_requests: 3  # 複数リクエストを並列実行
 ```
 
-3. より軽量なモデルを使用:
-```bash
-ollama pull mistral:latest  # 代替モデル
-```
+3. より軽量なモデルを使用（メニューから4-bit量子化版を選択）
 
 ## パフォーマンス目安
 
@@ -226,23 +334,6 @@ ollama pull mistral:latest  # 代替モデル
 - Phase 2〜6（完全実行）: 4〜8時間
 
 ## 高度な使い方
-
-### コマンドラインからの実行
-
-```python
-# Python スクリプトとして実行
-from src import Pipeline
-
-pipeline = Pipeline()
-pipeline.check_prerequisites()
-
-user_context = """
-context:
-  theme: "未来都市"
-"""
-
-results = pipeline.run_full_pipeline(user_context)
-```
 
 ### チェックポイントからの再開
 
@@ -290,9 +381,9 @@ pytest tests/ --cov=src --cov-report=html
 
 **A**: 以下の方法を試してください:
 1. フル精度モデル（gpt-oss:20b）を使用
-2. temperatureを調整（創造性 vs 一貫性）
-3. プロンプトを詳細化
-4. より高性能なハードウェアを使用
+2. 高性能マシンなら gpt-oss:120b を使用
+3. temperatureを調整（創造性 vs 一貫性）
+4. プロンプトを詳細化
 
 ### Q3: 他のモデルを使用できますか？
 
@@ -307,7 +398,11 @@ model:
 ollama list
 ```
 
-### Q4: 商用利用は可能ですか？
+### Q4: 同じテーマで複数回実行するとどうなりますか？
+
+**A**: 実行ごとに `output/run_YYYYMMDD_HHMMSS/` という別ディレクトリが作成されるため、過去の出力は上書きされません。異なるモデルやパラメータでの実験結果を全て保持できます。
+
+### Q5: 商用利用は可能ですか？
 
 **A**: gpt-ossモデルのライセンスに従ってください。詳細はOllamaの公式ドキュメントを参照してください。
 
@@ -327,6 +422,13 @@ ollama list
 
 ## 更新履歴
 
+### v2.1-local (2026-03-22)
+- ローカル版デフォルトモデルを `gpt-oss:20b` に明示
+- 量子化版 (`gpt-oss:20b-q8`, `gpt-oss:20b-q4`) をモデル選択肢として追加
+- 高性能マシン向け `gpt-oss:120b` を選択肢として追加
+- CLI / Pythonコードでモデルを起動時に選択可能に
+- 実行ごとに `output/run_YYYYMMDD_HHMMSS/` へ出力を保存（上書き防止）
+
 ### v2.0-local (2026-02-14)
 - 初回リリース
 - Ollama + gpt-oss:20b対応
@@ -337,5 +439,5 @@ ollama list
 ---
 
 **Author**: masa-jp-art
-**Version**: v2.0-local
-**Last Updated**: 2026-02-14
+**Version**: v2.1-local
+**Last Updated**: 2026-03-22

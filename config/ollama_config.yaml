@@ -15,15 +15,25 @@ server:
 # Model Configuration
 # ----------------------------------------
 model:
-  # Primary model name
+  # Primary model name (standard local model)
   name: "gpt-oss:20b"
 
-  # Alternative models (for fallback or user selection)
+  # Quantized variants of gpt-oss:20b (for limited VRAM / memory-constrained machines)
+  quantized_variants:
+    - name: "gpt-oss:20b-q8"   # 8-bit quantized – balanced quality / memory trade-off
+      description: "8-bit quantized (recommended for 16–24 GB VRAM)"
+    - name: "gpt-oss:20b-q4"   # 4-bit quantized – lowest memory footprint
+      description: "4-bit quantized (recommended for 8–16 GB VRAM)"
+
+  # High-end model for powerful machines (60+ GB VRAM or large RAM)
+  high_end_model:
+    name: "gpt-oss:120b"
+    description: "120 billion parameter model – highest quality, requires 60+ GB VRAM or large RAM"
+
+  # Other alternative models (for fallback or experimentation)
   alternatives:
-    - "gpt-oss:20b-q4"  # 4-bit quantized (lighter)
-    - "gpt-oss:20b-q8"  # 8-bit quantized
-    - "llama3:70b"      # Alternative model
-    - "mistral:latest"  # Alternative model
+    - "llama3:70b"      # Alternative large model
+    - "mistral:latest"  # Lighter alternative model
 
   # Default generation parameters
   generation:
@@ -121,6 +131,8 @@ logging:
 
 # Output Configuration
 # ----------------------------------------
+# Each pipeline run is saved in a separate subdirectory under base_dir,
+# named "run_YYYYMMDD_HHMMSS" so that repeated runs never overwrite each other.
 output:
   base_dir: "./output"
   subdirs:
