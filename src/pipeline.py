@@ -4,6 +4,7 @@ Main pipeline orchestration for 100 TIMES AI WORLD BUILDING
 """
 
 import random
+from datetime import datetime
 from typing import Dict, Any, Optional
 
 import yaml as yaml_lib
@@ -29,6 +30,8 @@ class Pipeline:
         self,
         config_path: str = "config/ollama_config.yaml",
         prompts_dir: str = "config/prompts",
+        model: Optional[str] = None,
+        run_id: Optional[str] = None,
     ):
         """
         Initialize pipeline
@@ -36,26 +39,47 @@ class Pipeline:
         Args:
             config_path: Path to configuration file
             prompts_dir: Directory containing prompt templates
+            model: Model name to use (overrides config value).  Pass one of:
+                   "gpt-oss:20b"    – standard local model (default)
+                   "gpt-oss:20b-q8" – 8-bit quantized (16-24 GB VRAM)
+                   "gpt-oss:20b-q4" – 4-bit quantized (8-16 GB VRAM)
+                   "gpt-oss:120b"   – high-end model (60+ GB VRAM)
+            run_id: Unique identifier for this run (default: current timestamp
+                    "YYYYMMDD_HHMMSS").  Each run stores its outputs under
+                    ``<base_dir>/run_<run_id>/`` so that successive runs never
+                    overwrite previous results.
         """
         # Load configuration
         self.config = load_config(config_path)
+
+        # Determine run ID (one unique directory per execution)
+        self.run_id = run_id or datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Initialize components
         server_config = self.config.get("server", {})
         model_config = self.config.get("model", {})
 
+        # Model selection: explicit argument > config value > built-in default
+        resolved_model = model or model_config.get("name", "gpt-oss:20b")
+
         self.client = OllamaClient(
             host=server_config.get("host", "http://localhost"),
             port=server_config.get("port", 11434),
-            model=model_config.get("name", "gpt-oss:20b"),
+            model=resolved_model,
             timeout=server_config.get("timeout", 300),
             max_retries=server_config.get("max_retries", 3),
             retry_delay=server_config.get("retry_delay", 5),
         )
 
+        # Per-run output directory
+        output_config = self.config.get("output", {})
+        base_dir_root = output_config.get("base_dir", "./output")
+        self.base_dir = f"{base_dir_root}/run_{self.run_id}"
+
         checkpoint_config = self.config.get("checkpointing", {})
+        checkpoint_dir = f"{self.base_dir}/checkpoints"
         self.checkpoint_manager = CheckpointManager(
-            checkpoint_dir=checkpoint_config.get("output_dir", "./output/checkpoints"),
+            checkpoint_dir=checkpoint_dir,
             auto_save=checkpoint_config.get("auto_save", True),
             compression=checkpoint_config.get("compression", False),
         )
@@ -63,11 +87,11 @@ class Pipeline:
         # Load prompts
         self.prompts = load_prompts(prompts_dir)
 
-        # Output configuration
-        self.output_config = self.config.get("output", {})
-        self.base_dir = self.output_config.get("base_dir", "./output")
+        # Output configuration (kept for reference; actual paths use self.base_dir)
+        self.output_config = output_config
 
-        logger.info("Pipeline initialized")
+        logger.info(f"Pipeline initialized (run_id={self.run_id}, model={resolved_model})")
+        logger.info(f"Output directory: {self.base_dir}")
 
     def check_prerequisites(self) -> bool:
         """
