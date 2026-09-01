@@ -10,11 +10,16 @@ from .ollama_client import OllamaClient
 from .checkpoint_manager import CheckpointManager
 from .utils import load_config, load_prompts, data_to_markdown, rich_print, setup_logging
 from .pipeline import Pipeline
+from .batch import BatchRunner, run_batch
+from .run_manifest import RunManifest
 
 __all__ = [
     "OllamaClient",
     "CheckpointManager",
     "Pipeline",
+    "BatchRunner",
+    "run_batch",
+    "RunManifest",
     "load_config",
     "load_prompts",
     "data_to_markdown",

@@ -42,11 +42,11 @@ jupyter notebook
 ### ステップ3: 結果を確認
 
 ```bash
-# 生成されたファイルを確認
-ls output/intermediate/
+# 生成された世界パッケージを確認
+ls output/world_*/
 
 # YAMLファイルの内容を確認
-cat output/intermediate/01_desire_list.yaml | head -20
+cat output/world_<id>/intermediate/01_desire_list.yaml | head -20
 ```
 
 ---
@@ -74,9 +74,9 @@ all_results = pipeline.run_full_pipeline(user_context)
 tail -f logs/local_v2.log
 
 # 進捗を確認
-ls -lh output/intermediate/
-ls -lh output/novels/
-ls -lh output/references/
+ls -lh output/world_<id>/intermediate/
+ls -lh output/world_<id>/final/novels/
+ls -lh output/world_<id>/final/references/
 ```
 
 ---
@@ -358,7 +358,7 @@ results = pipeline.run_phase1_expansion(custom_context)
 
 2. **生成結果を確認**
    ```bash
-   cat output/intermediate/01_desire_list.yaml | head -30
+   cat output/world_<id>/intermediate/01_desire_list.yaml | head -30
    ```
 
 3. **プロンプトを調整**

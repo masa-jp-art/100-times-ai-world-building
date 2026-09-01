@@ -1,0 +1,1095 @@
+{
+  "schema_version": 1,
+  "run_id": "20260828_194330_663637",
+  "run_seed": 20260828,
+  "seed_source": "argument",
+  "models": {
+    "structured": "gpt-oss:20b",
+    "story": "gpt-oss:20b",
+    "reference": "gpt-oss:20b",
+    "vision": "llava:latest"
+  },
+  "config": {
+    "path": "/Users/masa/マイドライブ/Dev/100-times-ai-world-building/config/ollama_config.yaml",
+    "sha256": "88998193299fe186b10df9b8d66fbba43762feb459694620dac1a8b781300783"
+  },
+  "prompts": {
+    "config/prompts/expansion.yaml": "c42930c868039c53e6e3c5a687d6e05e1dcd11303573740e68dde708b75d57c4",
+    "config/prompts/plot_generation.yaml": "91fd0f5f3be67dba19f88296a696518522d9e92d4587e651368fd7985a41360f",
+    "config/prompts/story_generation.yaml": "6cbe6c712e429e9710c0279f6881dd6927d00c7401b74401624c3b230236a1f0",
+    "config/prompts/world_building.yaml": "dc3874f50363d1738c9bf4356bf1c7f4eca11eb1e2b332bbb59836dad4ea0a84"
+  },
+  "created_at": "2026-08-28T10:43:30+00:00",
+  "status": "completed",
+  "phases": {
+    "phase1_expansion": {
+      "status": "completed",
+      "started_at": "2026-08-28T10:43:30+00:00",
+      "finished_at": "2026-08-29T00:39:50+00:00"
+    },
+    "phase0_context": {
+      "status": "completed",
+      "started_at": "2026-08-28T22:29:39+00:00",
+      "finished_at": "2026-08-28T22:29:39+00:00"
+    },
+    "phase2_characters": {
+      "status": "completed",
+      "started_at": "2026-08-28T22:29:39+00:00",
+      "finished_at": "2026-08-29T00:39:50+00:00"
+    },
+    "phase3_world": {
+      "status": "completed",
+      "started_at": "2026-08-28T22:48:20+00:00",
+      "finished_at": "2026-08-29T00:39:50+00:00"
+    },
+    "phase4_plot": {
+      "status": "completed",
+      "started_at": "2026-08-28T23:46:36+00:00",
+      "finished_at": "2026-08-29T01:01:16+00:00"
+    },
+    "phase5_novels": {
+      "status": "completed",
+      "started_at": "2026-08-29T01:01:16+00:00",
+      "finished_at": "2026-08-29T01:14:31+00:00"
+    },
+    "phase6_references": {
+      "status": "completed",
+      "started_at": "2026-08-29T01:14:31+00:00",
+      "finished_at": "2026-08-29T01:41:31+00:00"
+    }
+  },
+  "updated_at": "2026-08-29T01:41:32+00:00",
+  "started_at": "2026-08-28T10:43:30+00:00",
+  "pid": 65348,
+  "requests": {
+    "phase1_desire_list_batch_1": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 56094788
+    },
+    "phase1_desire_list_batch_2": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 631538212
+    },
+    "phase1_desire_list_batch_3": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 38460818
+    },
+    "phase1_desire_list_batch_4": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1651204981
+    },
+    "phase1_desire_list_batch_5": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1330796656
+    },
+    "phase1_ability_list_batch_1": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1401786622
+    },
+    "phase1_ability_list_batch_2": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 580990277
+    },
+    "phase1_ability_list_batch_3": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 156765007
+    },
+    "phase1_ability_list_batch_4": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1730674400
+    },
+    "phase1_ability_list_batch_5": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1657164169
+    },
+    "phase1_ability_list_batch_6": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1073896017
+    },
+    "phase1_role_list_batch_1": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1427362291
+    },
+    "phase1_role_list_batch_2": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1181235073
+    },
+    "phase1_role_list_batch_3": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1305985107
+    },
+    "phase1_role_list_batch_4": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1660041074
+    },
+    "phase1_role_list_batch_5": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 2054890548
+    },
+    "phase1_plottype_list_batch_1": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1251577551
+    },
+    "phase1_plottype_list_batch_2": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1430669434
+    },
+    "phase1_plottype_selection": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 489054364
+    },
+    "phase2_characters": {
+      "temperature": 0.9,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 2048,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1064659423
+    },
+    "phase3_events": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 509346201
+    },
+    "phase3_observation": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 65623321
+    },
+    "phase3_interpretation": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 811794575
+    },
+    "phase3_media": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1316330643
+    },
+    "phase3_important_past_events": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1587799644
+    },
+    "phase3_important_past_events_retry_1": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 672495717
+    },
+    "phase3_important_past_events_retry_2": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1570859736
+    },
+    "phase3_important_past_events_retry_3": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1242780849
+    },
+    "phase3_important_past_events_retry_4": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 943768386
+    },
+    "phase3_important_past_events_retry_5": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 301465015
+    },
+    "phase3_important_past_events_repaired": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 28296131
+    },
+    "phase3_social_structure": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 2138701459
+    },
+    "phase3_living_environment": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 8192,
+      "think": false,
+      "seed": 1239805598
+    },
+    "phase3_social_groups": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1793839353
+    },
+    "phase3_people_list": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1506256759
+    },
+    "phase3_social_groups_repaired": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 228094773
+    },
+    "phase3_people_list_batch_1": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 434582297
+    },
+    "phase3_people_list_batch_2": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1047260667
+    },
+    "phase3_people_list_batch_3": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 951590407
+    },
+    "phase3_people_list_batch_4": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 541018769
+    },
+    "phase3_people_list_batch_5": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 480894861
+    },
+    "phase3_future_scenarios": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1892931470
+    },
+    "phase4_plot": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 803541996
+    },
+    "phase4_plot_1": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 314838807
+    },
+    "phase4_keywords_1": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 572047506
+    },
+    "phase4_references_1": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 132911769
+    },
+    "phase4_plot_2": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 513171939
+    },
+    "phase4_keywords_2": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 375512283
+    },
+    "phase4_references_2": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1555848550
+    },
+    "phase4_plot_3": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 679978403
+    },
+    "phase4_keywords_3": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 565934678
+    },
+    "phase4_references_3": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1791458998
+    },
+    "phase4_plot_4": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 494911574
+    },
+    "phase4_keywords_4": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 275508548
+    },
+    "phase4_references_4": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1907522084
+    },
+    "phase4_plot_5": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1146985000
+    },
+    "phase4_keywords_5": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1504481200
+    },
+    "phase4_references_5": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1967959618
+    },
+    "phase4_plot_6": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 2141077183
+    },
+    "phase4_keywords_6": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1705935021
+    },
+    "phase4_references_6": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 722522978
+    },
+    "phase4_plot_7": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1735408698
+    },
+    "phase4_keywords_7": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 286591234
+    },
+    "phase4_references_7": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1788471243
+    },
+    "phase4_plot_8": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 922475672
+    },
+    "phase4_keywords_8": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1508613715
+    },
+    "phase4_references_8": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 394115807
+    },
+    "phase4_plot_9": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1780927611
+    },
+    "phase4_keywords_9": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 267701606
+    },
+    "phase4_references_9": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 659968178
+    },
+    "phase4_plot_10": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 861037895
+    },
+    "phase4_keywords_10": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 145083781
+    },
+    "phase4_references_10": {
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 8192,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 2050854502
+    },
+    "phase5_story_1": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 448734031
+    },
+    "phase5_story_2": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1636449035
+    },
+    "phase5_story_3": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 644890703
+    },
+    "phase5_story_4": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1568338359
+    },
+    "phase5_story_5": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1293494532
+    },
+    "phase5_story_6": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 937666435
+    },
+    "phase5_story_7": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1365482580
+    },
+    "phase5_story_8": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 746756396
+    },
+    "phase5_story_9": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 758744976
+    },
+    "phase5_story_10": {
+      "temperature": 1.0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 183898116
+    },
+    "phase6_reference_characters.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 688352121
+    },
+    "phase6_reference_plot.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 410392517
+    },
+    "phase6_reference_user_context.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 920769381
+    },
+    "phase6_reference_desire_list.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 97046588
+    },
+    "phase6_reference_ability_list.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 983143750
+    },
+    "phase6_reference_role_list.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1430047963
+    },
+    "phase6_reference_plottype_list.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 759177492
+    },
+    "phase6_reference_events.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1720164674
+    },
+    "phase6_reference_observation.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 578736510
+    },
+    "phase6_reference_interpretation.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 984920166
+    },
+    "phase6_reference_media.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1836494098
+    },
+    "phase6_reference_important_past_events.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1361623464
+    },
+    "phase6_reference_social_structure.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 669263813
+    },
+    "phase6_reference_living_environment.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 2072575881
+    },
+    "phase6_reference_social_groups.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1496706902
+    },
+    "phase6_reference_people_list.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 631456580
+    },
+    "phase6_reference_future_scenarios.md": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "top_k": 40,
+      "repeat_penalty": 1.1,
+      "num_predict": 4096,
+      "num_ctx": 32768,
+      "think": false,
+      "seed": 1414618107
+    }
+  },
+  "finished_at": "2026-08-29T01:41:32+00:00",
+  "layout_version": 2,
+  "artifact_type": "world_output",
+  "paths": {
+    "input": "input",
+    "intermediate": "intermediate",
+    "checkpoints": "checkpoints",
+    "novels": "final/novels",
+    "references": "final/references"
+  },
+  "last_validation_error": {
+    "artifact": "references",
+    "chapter_number": null,
+    "errors": [
+      "references must contain at most 20 items (got 40)"
+    ],
+    "at": "2026-08-28T23:56:43+00:00"
+  },
+  "model_override": {
+    "structured": "gemma4:e4b",
+    "story": "gemma4:e4b",
+    "reference": "gemma4:e4b",
+    "vision": "llava:latest"
+  },
+  "completion_notes": [
+    "important_past_events was completed with one schema-preserving event after the local model returned 9 items on repeated attempts.",
+    "social_groups was completed with one schema-preserving group after the local model returned 9 items on repeated attempts."
+  ],
+  "user_context_sha256": "cf60eaa4a12d86db5e7d20deddef72f510524f102afb70ca1fcaafecd8266d77"
+}

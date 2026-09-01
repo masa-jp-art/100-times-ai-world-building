@@ -17,14 +17,14 @@ characters:
     選択されたプロットタイプ:
     {plottype}
 
-    願望リスト（抜粋）:
-    {desire_sample}
+    願望リスト:
+    {desire_list}
 
-    能力リスト（抜粋）:
-    {ability_sample}
+    能力リスト:
+    {ability_list}
 
-    役割リスト（抜粋）:
-    {role_sample}
+    役割リスト:
+    {role_list}
 
     4人の登場人物:
     1. protagonist（主人公）: 物語の中心人物。冒険と試練を通じて成長する
@@ -280,8 +280,12 @@ living_environment:
   user: |
     以下の世界設定に基づいて、生活環境を定義してください。
 
+    事象: {events}
+    観測: {observation}
+    解釈: {interpretation}
+    記録媒体: {media}
+    過去の重要なイベント: {important_past_events}
     社会構造: {social_structure}
-    [その他の累積コンテクスト]
 
     以下について詳細に記述してください:
     - 家族形態

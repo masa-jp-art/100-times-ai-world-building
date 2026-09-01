@@ -11,9 +11,13 @@ social_groups:
   user: |
     以下の世界設定に基づいて、10個の社会的集団を定義してください。
 
+    事象: {events}
+    観測: {observation}
+    解釈: {interpretation}
+    記録媒体: {media}
+    過去の重要なイベント: {important_past_events}
     社会構造: {social_structure}
     生活環境: {living_environment}
-    [その他の累積コンテクスト]
 
     各集団には以下を含めてください:
     - name: 集団名
@@ -47,6 +51,11 @@ people_list:
   user: |
     以下の世界設定に基づいて、100人のペルソナを生成してください。
 
+    事象: {events}
+    観測: {observation}
+    解釈: {interpretation}
+    記録媒体: {media}
+    過去の重要なイベント: {important_past_events}
     社会構造: {social_structure}
     生活環境: {living_environment}
     社会的集団: {social_groups}
@@ -99,7 +108,15 @@ future_scenarios:
   user: |
     以下の世界設定に基づいて、50〜100年後の未来シナリオを3つ生成してください。
 
-    [すべての累積世界設定]
+    事象: {events}
+    観測: {observation}
+    解釈: {interpretation}
+    記録媒体: {media}
+    過去の重要なイベント: {important_past_events}
+    社会構造: {social_structure}
+    生活環境: {living_environment}
+    社会的集団: {social_groups}
+    生活者ペルソナ: {people_list}
 
     以下の3つのシナリオを生成してください:
     1. optimistic: 楽観的シナリオ
@@ -148,7 +165,8 @@ plot:
     プロットタイプ: {plottype}
     キャラクター: {characters_list}
 
-    [すべての世界設定データ]
+    すべての世界設定データ:
+    {world_data}
 
     全10章のプロットを生成してください。各章には以下を含めてください:
     - chapter: 章番号

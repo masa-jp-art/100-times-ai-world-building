@@ -1,0 +1,109 @@
+plot_types:
+- plot_type: 英雄の旅
+  core_structure: 呼びかけ → 舞台を離れる → 試練・導師 → 重大な危機 → 成功・帰還
+  required_events: 召喚、試練、助言者との出会い、最終決戦、帰還
+  character_requirements: 主人公（勇敢で純粋）、仲間、敵、導師、愛する人
+  temporal_design_principles: 起承転結のリズムを保ちつつ、クライマックスに向かって緩やかな時間的加速
+  types_of_conflict: 外部（自然・怪物）と内部（自分の恐怖）
+  climax_conditions: 最大限の危機に直面し、主人公が自己成長を実証する瞬間
+  principles_of_temp: テンポは起承転結でゆっくり始まり、クライマックス前に急速化
+  typical_story_setting: 古代神話的世界、遠い王国、海の彼方
+- plot_type: 運命を超える者
+  core_structure: 予言／宿命 → 反抗・行動計画 → 失敗と再起 → 最終挑戦
+  required_events: 予知、拒絶、試練、裏切り、真実の暴露
+  character_requirements: 主人公（運命に抗う者）、預言者、支援者、敵役
+  temporal_design_principles: 時間は非線形で、過去と現在を交差させる
+  types_of_conflict: 内面・精神的対立、外部の権力との衝突
+  climax_conditions: 運命と向き合い、自らの選択が最終的に決定する瞬間
+  principles_of_temp: 緩やかな前進でクライマックスへ至る急上昇
+  typical_story_setting: 神々の介入を伴う古代都市、星座の祭壇
+- plot_type: 禁断知識探求
+  core_structure: 好奇心 → 禁忌への接触 → 知識獲得 → 代償
+  required_events: 禁断文書発見、試験、警告無視、結果受容
+  character_requirements: 主人公（学者/冒険家)、謎の古老、危険な存在
+  temporal_design_principles: 短期的に急速に進むが、代償を示すクライマックスで時間の停滞
+  types_of_conflict: 知識対無知、人間対超自然
+  climax_conditions: 禁断の真実を直視し、選択する瞬間
+  principles_of_temp: テンポは情報流通と同時に増速
+  typical_story_setting: 古代図書館、地下遺跡、幽霊の城
+- plot_type: 二つの世界の衝突
+  core_structure: 平和な共存 → 侵入者/危険が現れる → 対立・戦闘 → 和解または崩壊
+  required_events: 異界からの侵略、第一次戦争、停戦交渉、最終決戦
+  character_requirements: 代表者（王／軍司令官）、仲間、敵の指導者、神聖な存在
+  temporal_design_principles: 時間は大規模で長期的, 進行はゆっくりと段階化
+  types_of_conflict: 文化対文化、自然対人類
+  climax_conditions: 最終戦争が決定的に勝敗を分ける場面
+  principles_of_temp: テンポは大局を示す長期スパンであり、クライマックスへ向かう加速
+  typical_story_setting: 二つの異なる領域（魔法界と現実世界）、海に囲まれた島国
+- plot_type: 崩壊と再生
+  core_structure: 繁栄 → 悪意/災害・崩壊 → 孤立した英雄が復興を図る
+  required_events: 暴政、自然災害、社会崩壊, 破壊者の挑戦, 復興計画
+  character_requirements: 主人公（過去に敗れたが再起する人物)、同盟者、敵の残党、天的指導者
+  temporal_design_principles: 時間は非線形で、崩壊から復興までの長期を描く
+  types_of_conflict: 社会対個人、善と悪の葛藤
+  climax_conditions: 最終決戦で失われた平和が回復し、新しい秩序が確立する瞬間
+  principles_of_temp: テンポは落ち込みから急速な成長へ移行
+  typical_story_setting: 古代都市、荒廃した王国、神々の遺跡
+- plot_type: 英雄の旅
+  core_structure: 出発・試練・帰還という三幕構成で、主人公が未知への呼びかけに応え、成長と変容を遂げる。
+  required_events: 冒険への呼びかけ → 断念の拒否 → 指導者との接触 → 閾値の横切り → 試練・仲間・敵の出現 → 絶望的試練 → 報酬獲得
+    → 帰路の開始 → 復活の瞬間 → 帰還と恩恵
+  character_requirements: 主人公（未熟であっても勇敢）、導師（知恵者・神秘存在）、影（敵対勢力）/仲間（多様な能力を持つキャラクター）、助言者、最終的に恩恵を受ける社会
+  temporal_design_principles: 冒頭で呼びかけと拒否を提示し、中盤で試練と成長を重ね、クライマックスは物語末尾近くに配置。帰還段階で余韻と変容を示す。
+  types_of_conflict:
+  - 内部葛藤（自己疑念）
+  - 外部対立（敵・自然）
+  - 神秘的衝突（運命vs意志）
+  climax_conditions: 主人公が究極の試練に直面し、内なる恐怖を克服しつつ、物理的または精神的な報酬を得る瞬間。
+  principles_of_temp: 初期段階でゆっくりと時間を稼ぎ、旅の中盤でテンポを上げ、クライマックスに向けて急激に加速させる。各章でリズムを調整し、読者を引き込む。
+  typical_story_setting: 神話的な世界観（天・地・海の三界）や古代文明の広大な風景、未知への旅路
+- plot_type: 貧困から王になる物語
+  core_structure: 貧しい出発点 → 困難と試練 → 助け合い・成長 → 権力獲得 → 結末の安定化。
+  required_events: 貧困生活の描写 → 父親または保護者の死去 → 重要な機会（宝石、予言など）に出会う → 試練と学び → 富や権力を得る勝利
+    → 社会復帰・統治
+  character_requirements: 貧困の主人公、恩師/賢者、敵対する富豪／暴君、愛情相手または仲間、助けてくれる運命的存在。
+  temporal_design_principles: 物語は初期でゆっくり始まり、成功への中盤に向かって加速し、最終章で権力確立のクライマックスとその後の安定を描く。
+  types_of_conflict:
+  - 社会階級対立
+  - 個人的成長闘争
+  - 運命との衝突
+  climax_conditions: 主人公が重要な試練（賢者の試み・戦い）で自らの価値を証明し、真の王として認められる瞬間。
+  principles_of_temp: 冒頭は穏やかに設定描写を重視し、中盤でスピードアップ。クライマックスでは緊張と解放感が交互に走るよう調整。
+  typical_story_setting: 田舎の小さな村から王宮へ、古代または中世風の架空国
+- plot_type: 探求の旅
+  core_structure: 目的設定 → 仲間集め → 道中の試練・障害 → クライマックスで目的達成 → 帰還。
+  required_events: 失われた遺物や知識を追う呼びかけ → 仲間選定と準備 → 旅路で遭遇する困難（自然・魔法・敵）→ 重要アイテムの取得または真実の発見
+    → 帰還と応用
+  character_requirements: 主人公（探求者）、仲間（戦士・術師・盗賊など多種多様）、案内人/導師、主要敵対勢力、守護神や預言者。
+  temporal_design_principles: 物語は直線的に進むが、各試練ごとに節目を設けてテンポを調整。クライマックス前に小さな解決でペースダウンし、最終幕へ向かう。
+  types_of_conflict:
+  - 身体的対立（自然・怪物）
+  - 魔法/超常的障害
+  - 仲間内の意見衝突
+  climax_conditions: 主人公が目的を達成し、それに伴う大きな選択肢や犠牲を決断する瞬間。
+  principles_of_temp: 旅路は均等にテンポを保ちつつ、試練の頻度と難易度でリズムを変化させる。クライマックス前後で急激な緊張感を演出。
+  typical_story_setting: 幻想的な大陸・山脈・海峡・古代遺跡など、探求にふさわしい広大かつ神秘的な世界
+- plot_type: 復讐の物語
+  core_structure: 侵害 → 復讐計画 → 構築と実行 → クライマックスで対決・結果、後始末。
+  required_events: 被害や裏切りによるトラウマ発生 → 復讐の誓い → 資源調達と訓練 → 敵との接触・対峙 → 終結の瞬間 → 後遺症/教訓の提示
+  character_requirements: 復讐者（主人公）、被害者、仲間／助言者、敵対勢力／主犯、法的または社会的権威。
+  temporal_design_principles: 物語は初期に悲劇を提示し、計画段階で中盤を構築。クライマックスは感情のピークを最大化した後、余韻と教訓を示す終幕へ移行。
+  types_of_conflict:
+  - 個人的復讐対社会法規
+  - 内面的罪悪感・葛藤
+  - 権力闘争
+  climax_conditions: 主人公が敵に対して決定的な勝利または和解を得る瞬間。復讐行為がもたらす結果（報いか罰）で物語が終結。
+  principles_of_temp: 緊張を継続させつつ、クライマックスに向けて徐々に速度を上げる。最終対決後は余韻と反省の時間を確保。
+  typical_story_setting: 封建時代の城下町・山間の村・都市の裏社会など、権力構造が明確な場所
+- plot_type: ずる賢い人
+  core_structure: ずる賢い主人公の登場 → 連続したいたずらや騙し行為 → 反発・対決 → 教訓的解決。
+  required_events: 主人公の機知ある出会い → ちょっとしたトラブル（財産奪取、嘘）→ 危険を伴う大きな計画 → 結末で教訓・和解または報復
+  character_requirements: ずる賢い主人公（知恵と機転）、被害者（権威ある人物や貧困層の人々）、仲間／助力者、警備や敵対勢力。
+  temporal_design_principles: 物語は短いエピソードで構成されるためテンポが速く、一つ一つの出来事でサイクルを完結させる。クライマックスは最後にまとめられる。
+  types_of_conflict:
+  - 心理的な対決（知恵比べ）
+  - 社会規範との衝突
+  - 人間関係の摩擦
+  climax_conditions: 主人公が最も大きな嘘や計略を成功させる瞬間、またはその結果として得られる教訓的結末。
+  principles_of_temp: 軽快でテンポよく進め、読者を笑わせつつ急転直下の緊張も挟む。リズムは短いサイクルと大きなクライマックスの対比で構築。
+  typical_story_setting: 田舎町・市場・神社前など、日常生活が舞台となる小さなコミュニティ

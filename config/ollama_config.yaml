@@ -8,7 +8,8 @@
 server:
   host: "http://localhost"
   port: 11434
-  timeout: 300  # seconds (5 minutes)
+  # Large structured outputs (100 items) can take several minutes locally.
+  timeout: 900  # seconds (15 minutes per request)
   max_retries: 3
   retry_delay: 5  # seconds
 
@@ -44,6 +45,15 @@ model:
     repeat_penalty: 1.1
     seed: null  # null for non-deterministic, set integer for reproducibility
 
+# Optional role-specific local models.  If omitted, the model above is used
+# for every phase.  Set `vision` to a local vision-capable Ollama model when
+# using image context input (for example: llava:latest).
+models:
+  structured: "gpt-oss:20b"
+  story: "gpt-oss:20b"
+  reference: "gpt-oss:20b"
+  vision: "llava:latest"
+
 # Phase-specific configurations
 # ----------------------------------------
 phases:
@@ -52,38 +62,53 @@ phases:
     temperature: 0.7
     num_predict: 2048
     format: "json"
+    think: false
 
   # Phase 1: 100x expansion
   phase1_expansion:
     temperature: 0.8
-    num_predict: 4096
+    # Generate 100-item lists in bounded chunks for local memory/time safety.
+    # Plot-type candidates contain several fields per item and need more room.
+    num_predict: 8192
     format: "json"
-    batch_size: 5  # Number of parallel requests (if supported)
+    # Structured artifacts should not spend the response budget on reasoning.
+    think: false
+    batch_size: 1  # Requests are kept sequential for local memory safety
+    items_per_request: 20
+    plottype_items_per_request: 5
 
   # Phase 2: Character generation
   phase2_characters:
     temperature: 0.9
     num_predict: 2048
     format: "json"
+    think: false
 
   # Phase 3: World building
   phase3_world:
     temperature: 0.7
-    num_predict: 4096
+    # people_list contains 100 items; generate it in bounded local batches.
+    num_predict: 8192
     format: "json"
+    think: false
     cumulative_context: true  # Use accumulated context
+    people_items_per_request: 20
 
   # Phase 4: Plot generation
   phase4_plot:
     temperature: 0.8
-    num_predict: 3072
+    # The complete 10-chapter plot needs more room than the old 3K limit.
+    num_predict: 8192
     format: "json"
+    think: false
 
   # Phase 5: Novel generation
   phase5_novel:
     temperature: 1.0  # High creativity for storytelling
     num_predict: 4096
+    max_continuations: 3  # Continue locally when Ollama stops at the token limit
     format: ""  # Free text
+    think: false
     streaming: false  # Set true for real-time output
 
   # Phase 6: Reference material generation
@@ -91,6 +116,7 @@ phases:
     temperature: 0.7
     num_predict: 4096
     format: ""  # Markdown output
+    think: false
 
 # Performance Optimization
 # ----------------------------------------
@@ -102,14 +128,14 @@ performance:
   num_gpu_layers: null
 
   # Maximum parallel requests
-  max_parallel_requests: 3
+  max_parallel_requests: 1
 
   # Context caching
   use_context_cache: true
   cache_ttl: 3600  # seconds (1 hour)
 
   # Memory management
-  max_context_length: 8192  # tokens
+  max_context_length: 32768  # tokens; accumulated Phase 3 prompts need more than the 8K minimum
   truncate_strategy: "sliding_window"  # or "priority"
 
 # Checkpointing
@@ -118,8 +144,9 @@ checkpointing:
   enabled: true
   auto_save: true
   save_interval: 1  # Save after every N API calls
-  output_dir: "./output/checkpoints"
-  compression: false  # Set true to compress checkpoint files
+  # Pipeline places these inside the corresponding world_<id> package.
+  compression: false  # Set true to gzip checkpoint files
+  max_checkpoints_per_phase: 100
 
 # Logging
 # ----------------------------------------
@@ -131,15 +158,16 @@ logging:
 
 # Output Configuration
 # ----------------------------------------
-# Each pipeline run is saved in a separate subdirectory under base_dir,
-# named "run_YYYYMMDD_HHMMSS" so that repeated runs never overwrite each other.
+# Each pipeline run is saved as one self-contained world package under base_dir,
+# named "world_YYYYMMDD_HHMMSS". Its input, intermediate artifacts,
+# checkpoints, and final deliverables stay together.
 output:
   base_dir: "./output"
   subdirs:
+    input: "input"
     intermediate: "intermediate"
     checkpoints: "checkpoints"
-    novels: "novels"
-    references: "references"
+    final: "final"
 
   # File formats
   formats:
@@ -158,6 +186,7 @@ output:
 safety:
   # Validate JSON outputs
   validate_json: true
+  validate_outputs: true
   max_validation_retries: 3
 
   # Content filtering (basic)
@@ -180,7 +209,7 @@ development:
 # ----------------------------------------
 features:
   # Enable experimental features
-  parallel_processing: true
+  parallel_processing: false  # Reserved for a future multi-request implementation
   streaming_output: false
   multi_model_ensemble: false
 

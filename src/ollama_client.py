@@ -3,9 +3,11 @@ Ollama Client Module
 Handles all interactions with Ollama API
 """
 
+import base64
 import json
 import time
-from typing import Optional, Dict, Any, List
+from pathlib import Path
+from typing import Optional, Dict, Any, List, Union
 import requests
 from loguru import logger
 
@@ -38,6 +40,7 @@ class OllamaClient:
         self.timeout = timeout
         self.max_retries = max_retries
         self.retry_delay = retry_delay
+        self.last_response_meta: Dict[str, Any] = {}
 
         logger.info(f"Initialized OllamaClient: {self.base_url}, model: {self.model}")
 
@@ -163,6 +166,9 @@ class OllamaClient:
         temperature: float = 0.7,
         max_tokens: int = 4096,
         system_prompt: Optional[str] = None,
+        images: Optional[List[Union[str, Path, bytes]]] = None,
+        num_ctx: Optional[int] = None,
+        think: Optional[bool] = None,
         **kwargs,
     ) -> Optional[str]:
         """
@@ -174,6 +180,8 @@ class OllamaClient:
             temperature: Generation temperature (0.0-2.0)
             max_tokens: Maximum tokens to generate
             system_prompt: Optional system prompt
+            think: Whether to request a separate reasoning trace from models
+                that support Ollama's top-level ``think`` option.
             **kwargs: Additional options to pass to Ollama
 
         Returns:
@@ -196,9 +204,18 @@ class OllamaClient:
             },
         }
 
+        if num_ctx is not None:
+            payload["options"]["num_ctx"] = num_ctx
+
+        if images:
+            payload["images"] = [self._encode_image(image) for image in images]
+
         # Add format if specified
         if format:
             payload["format"] = format
+        if think is not None:
+            # ``think`` is an Ollama request field, not a sampling option.
+            payload["think"] = think
 
         for attempt in range(self.max_retries):
             try:
@@ -213,6 +230,7 @@ class OllamaClient:
 
                 data = response.json()
                 generated_text = data.get("response", "")
+                self.last_response_meta = data
 
                 if generated_text:
                     logger.debug(f"Generated {len(generated_text)} characters")
@@ -237,6 +255,15 @@ class OllamaClient:
         logger.error("All retry attempts failed")
         return None
 
+    @staticmethod
+    def _encode_image(image: Union[str, Path, bytes]) -> str:
+        """Convert a local image path or bytes to Ollama's base64 format."""
+        if isinstance(image, bytes):
+            raw = image
+        else:
+            raw = Path(image).read_bytes()
+        return base64.b64encode(raw).decode("ascii")
+
     def generate_json(
         self,
         prompt: str,
@@ -244,6 +271,9 @@ class OllamaClient:
         max_tokens: int = 4096,
         system_prompt: Optional[str] = None,
         validate: bool = True,
+        images: Optional[List[Union[str, Path, bytes]]] = None,
+        num_ctx: Optional[int] = None,
+        **kwargs,
     ) -> Optional[Dict[str, Any]]:
         """
         Generate JSON output
@@ -268,33 +298,76 @@ class OllamaClient:
             temperature=temperature,
             max_tokens=max_tokens,
             system_prompt=system_prompt,
+            images=images,
+            num_ctx=num_ctx,
+            **kwargs,
         )
 
         if response is None:
             return None
 
-        # Try to parse JSON
+        parsed = self._parse_json(response, validate=validate)
+        if parsed is not None:
+            return parsed
+
+        # Some local reasoning models (notably gpt-oss releases) may accept
+        # ``format=json`` but return their planning text instead of a JSON
+        # document. Preserve the configured structured-format request above,
+        # then make one explicit compatibility fallback. The same kwargs,
+        # including the request seed, are reused for this logical retry.
+        if validate:
+            logger.warning(
+                "Structured JSON response was invalid; retrying with prompt-"
+                "constrained JSON and thinking disabled"
+            )
+            fallback_kwargs = dict(kwargs)
+            fallback_kwargs.pop("think", None)
+            fallback = self.generate(
+                prompt=prompt,
+                format="",
+                temperature=temperature,
+                max_tokens=max_tokens,
+                system_prompt=system_prompt,
+                images=images,
+                num_ctx=num_ctx,
+                think=False,
+                **fallback_kwargs,
+            )
+            if fallback:
+                parsed = self._parse_json(fallback, validate=True)
+                if parsed is not None:
+                    logger.info("JSON compatibility fallback succeeded")
+                    return parsed
+
+        logger.error("Failed to parse JSON after all retries")
+        return None
+
+    @staticmethod
+    def _parse_json(
+        response: str,
+        validate: bool = True,
+    ) -> Optional[Union[Dict[str, Any], List[Any]]]:
+        """Parse JSON, including common fenced-output wrappers."""
+        candidate = response
         for attempt in range(3 if validate else 1):
             try:
-                data = json.loads(response)
+                data = json.loads(candidate)
                 logger.debug("Successfully parsed JSON")
                 return data
-            except json.JSONDecodeError as e:
-                logger.warning(f"JSON parse error (attempt {attempt + 1}): {e}")
+            except json.JSONDecodeError as exc:
+                logger.warning(f"JSON parse error (attempt {attempt + 1}): {exc}")
 
                 if validate and attempt < 2:
-                    # Try to fix common JSON issues
-                    response = response.strip()
-                    if not response.startswith("{") and not response.startswith("["):
-                        # Try to extract JSON from markdown code blocks
-                        if "```json" in response:
-                            response = response.split("```json")[1].split("```")[0]
-                        elif "```" in response:
-                            response = response.split("```")[1].split("```")[0]
+                    candidate = candidate.strip()
+                    if not candidate.startswith("{") and not candidate.startswith("["):
+                        if "```json" in candidate:
+                            candidate = candidate.split("```json", 1)[1].split("```", 1)[0]
+                        elif "```" in candidate:
+                            candidate = candidate.split("```", 1)[1].split("```", 1)[0]
+                    else:
+                        break
                 else:
                     break
-
-        logger.error("Failed to parse JSON after all attempts")
         return None
 
     def generate_text(
@@ -303,6 +376,11 @@ class OllamaClient:
         temperature: float = 1.0,
         max_tokens: int = 4096,
         system_prompt: Optional[str] = None,
+        images: Optional[List[Union[str, Path, bytes]]] = None,
+        num_ctx: Optional[int] = None,
+        format: Optional[Union[str, Dict[str, Any]]] = None,
+        think: Optional[bool] = None,
+        **kwargs,
     ) -> Optional[str]:
         """
         Generate free-form text (for novels, references)
@@ -318,8 +396,69 @@ class OllamaClient:
         """
         return self.generate(
             prompt=prompt,
-            format="",  # Free text
+            format=format,
             temperature=temperature,
             max_tokens=max_tokens,
             system_prompt=system_prompt,
+            images=images,
+            num_ctx=num_ctx,
+            think=think,
+            **kwargs,
         )
+
+    def generate_long_text(
+        self,
+        prompt: str,
+        temperature: float = 1.0,
+        max_tokens: int = 4096,
+        system_prompt: Optional[str] = None,
+        max_continuations: int = 3,
+        continuation_tail_chars: int = 6000,
+        num_ctx: Optional[int] = None,
+        seed: Optional[int] = None,
+        seed_factory=None,
+        **kwargs,
+    ) -> Optional[str]:
+        """Generate long text over multiple local calls when Ollama hits its limit.
+
+        Ollama reports ``done_reason=length`` when a response reaches
+        ``num_predict``.  Only then is a continuation requested, so normal
+        short chapters still use a single call.
+        """
+        resolve_seed = seed_factory or (lambda _index: seed)
+        first = self.generate_text(
+            prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            system_prompt=system_prompt,
+            num_ctx=num_ctx,
+            seed=resolve_seed(0),
+            **kwargs,
+        )
+        if not first:
+            return first
+
+        parts = [first]
+        for continuation_index in range(1, max(0, max_continuations) + 1):
+            if self.last_response_meta.get("done_reason") not in {"length", "max_tokens"}:
+                break
+
+            continuation_prompt = (
+                "以下の小説本文の続きを執筆してください。"
+                "すでに書かれた文章を繰り返さず、物語本文だけを続けてください。\n\n"
+                f"直前の本文:\n{''.join(parts)[-continuation_tail_chars:]}"
+            )
+            continuation = self.generate_text(
+                continuation_prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                system_prompt=system_prompt,
+                num_ctx=num_ctx,
+                seed=resolve_seed(continuation_index),
+                **kwargs,
+            )
+            if not continuation:
+                break
+            parts.append(continuation)
+
+        return "\n\n".join(parts)

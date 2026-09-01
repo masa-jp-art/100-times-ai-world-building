@@ -4,6 +4,7 @@ Tests for OllamaClient module
 
 import pytest
 import requests
+import base64
 from unittest.mock import Mock, patch
 from src.ollama_client import OllamaClient
 
@@ -75,6 +76,127 @@ class TestOllamaClient:
 
         result = client.generate_json("Test prompt")
         assert result == {"key": "value"}
+
+    @patch('requests.post')
+    def test_generate_json_uses_explicit_compatibility_fallback(self, mock_post):
+        """Invalid structured output gets one same-seed prompt-only retry."""
+        client = OllamaClient(max_retries=1, retry_delay=0)
+        invalid = Mock()
+        invalid.status_code = 200
+        invalid.json.return_value = {
+            "response": "The model's planning text",
+            "done_reason": "stop",
+        }
+        valid = Mock()
+        valid.status_code = 200
+        valid.json.return_value = {
+            "response": '{"key": "value"}',
+            "done_reason": "stop",
+        }
+        mock_post.side_effect = [invalid, valid]
+
+        assert client.generate_json("Return JSON", seed=42) == {"key": "value"}
+        assert mock_post.call_count == 2
+        first = mock_post.call_args_list[0].kwargs["json"]
+        second = mock_post.call_args_list[1].kwargs["json"]
+        assert first["format"] == "json"
+        assert "format" not in second
+        assert second["think"] is False
+        assert first["options"]["seed"] == second["options"]["seed"] == 42
+
+    @patch('requests.post')
+    def test_generate_forwards_top_level_think(self, mock_post):
+        client = OllamaClient()
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"response": "ok"}
+        mock_post.return_value = mock_response
+
+        assert client.generate("Test", think=False) == "ok"
+        payload = mock_post.call_args.kwargs["json"]
+        assert payload["think"] is False
+
+    @patch('requests.post')
+    def test_generate_with_local_image_and_context_window(self, mock_post):
+        """Images must be sent as base64 and num_ctx must reach Ollama."""
+        client = OllamaClient()
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"response": "Image context"}
+        mock_post.return_value = mock_response
+
+        result = client.generate(
+            "Describe this image",
+            images=[b"image-bytes"],
+            num_ctx=8192,
+        )
+
+        assert result == "Image context"
+        payload = mock_post.call_args.kwargs["json"]
+        assert payload["images"] == [base64.b64encode(b"image-bytes").decode("ascii")]
+        assert payload["options"]["num_ctx"] == 8192
+
+    @patch('requests.post')
+    def test_generate_forwards_sampling_options_and_seed(self, mock_post):
+        """Sampling controls must be present in the Ollama options payload."""
+        client = OllamaClient()
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"response": "ok"}
+        mock_post.return_value = mock_response
+
+        assert client.generate(
+            "Test",
+            top_p=0.8,
+            top_k=20,
+            repeat_penalty=1.2,
+            seed=42,
+        ) == "ok"
+
+        options = mock_post.call_args.kwargs["json"]["options"]
+        assert options["top_p"] == 0.8
+        assert options["top_k"] == 20
+        assert options["repeat_penalty"] == 1.2
+        assert options["seed"] == 42
+
+    def test_generate_long_text_continues_after_token_limit(self):
+        """Long local output should request a continuation only after truncation."""
+        client = OllamaClient()
+        calls = []
+
+        def fake_generate_text(*args, **kwargs):
+            calls.append(args[0])
+            client.last_response_meta = {
+                "done_reason": "length" if len(calls) == 1 else "stop"
+            }
+            return "first" if len(calls) == 1 else "second"
+
+        with patch.object(client, "generate_text", side_effect=fake_generate_text):
+            result = client.generate_long_text("Write", max_continuations=2)
+
+        assert result == "first\n\nsecond"
+        assert len(calls) == 2
+
+    def test_generate_long_text_uses_continuation_seed_factory(self):
+        """Continuation calls can receive deterministic per-part seeds."""
+        client = OllamaClient()
+        seeds = []
+
+        def fake_generate_text(*args, **kwargs):
+            seeds.append(kwargs["seed"])
+            client.last_response_meta = {
+                "done_reason": "length" if len(seeds) == 1 else "stop"
+            }
+            return "part"
+
+        with patch.object(client, "generate_text", side_effect=fake_generate_text):
+            client.generate_long_text(
+                "Write",
+                max_continuations=1,
+                seed_factory=lambda index: 100 + index,
+            )
+
+        assert seeds == [100, 101]
 
     @patch('requests.post')
     def test_generate_retry_on_timeout(self, mock_post):

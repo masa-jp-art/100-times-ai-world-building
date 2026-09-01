@@ -110,9 +110,11 @@ Jupyter Notebook → Ollama (localhost:11434)
 │                  └────────────────────────────────┘        │
 │                                                          │
 │  ┌──────────────────────────────────────────────────┐    │
-│  │            中間データ永続化                         │    │
-│  │   ./output/intermediate/*.yaml                     │    │
-│  │   ./output/checkpoints/*.json                      │    │
+│  │          成果物パッケージ永続化                      │    │
+│  │   ./output/world_<id>/                             │    │
+│  │   ├── intermediate/*.yaml                          │    │
+│  │   ├── checkpoints/*.json                           │    │
+│  │   └── final/{novels,references}/                   │    │
 │  └──────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -139,16 +141,16 @@ Jupyter Notebook → Ollama (localhost:11434)
 │   ├── utils.py                          # ユーティリティ関数
 │   └── checkpoint_manager.py            # チェックポイント管理
 ├── output/
-│   ├── intermediate/                     # 中間データ
-│   │   ├── desire_list.yaml
-│   │   ├── ability_list.yaml
-│   │   └── ...
-│   ├── checkpoints/                      # チェックポイント
-│   │   └── checkpoint_YYYYMMDD_HHMMSS.json
-│   ├── novels/                           # 生成された小説
-│   │   └── story_chapter_01.txt
-│   └── references/                       # 設定資料集
-│       └── reference_characters.md
+│   ├── world_YYYYMMDD_HHMMSS/            # 1つの世界成果物
+│   │   ├── input/                        # 入力コンテキスト
+│   │   ├── intermediate/                 # 途中生成物
+│   │   ├── checkpoints/                  # 再開用状態
+│   │   └── final/                        # 最終成果物
+│   │       ├── novels/
+│   │       └── references/
+│   └── batch_YYYYMMDD_HHMMSS/            # 複数世界の成果物
+│       ├── batch_manifest.json
+│       └── worlds/
 └── tests/
     ├── test_ollama_client.py
     └── test_pipeline.py
@@ -185,7 +187,7 @@ Jupyter Notebook → Ollama (localhost:11434)
 |------|------|
 | モデル名 | gpt-oss:20b |
 | パラメータ数 | 20B (200億) |
-| コンテキスト長 | 8,192トークン (デフォルト) |
+| コンテキスト長 | 32,768トークン (現行設定) |
 | 出力形式 | JSON対応、Markdown対応 |
 | 推奨VRAM | 16GB以上 (量子化版: 12GB) |
 | 推奨RAM | 32GB以上 |
@@ -239,13 +241,13 @@ v1.2と同一のパイプライン構造を維持しますが、すべてのAPI�
 | フェーズ | 呼び出し回数 | チェックポイント |
 |----------|-------------|-----------------|
 | Phase 0 | 1回 | user_context保存 |
-| Phase 1 | 5回 | desire_list, ability_list, role_list, plottype_list, plottype保存 |
+| Phase 1 | 17回（100件リストを20件ずつ分割） | desire_list, ability_list, role_list, plottype_list, plottype保存 |
 | Phase 2 | 1回 | characters_list保存 |
-| Phase 3 | 10回 | 各世界設定データ保存 |
+| Phase 3 | 14回（people_listを20件ずつ分割） | 各世界設定データ保存 |
 | Phase 4 | 31回 | plot, plot_1...10, keywords, references保存 |
 | Phase 5 | 10回 | story_1...10保存（章ごと） |
 | Phase 6 | 17回 | reference_*保存（資料ごと） |
-| **合計** | **75回** | **各フェーズ終了時に自動保存** |
+| **合計** | **91回** | **各フェーズ終了時に自動保存** |
 
 ---
 
@@ -253,17 +255,18 @@ v1.2と同一のパイプライン構造を維持しますが、すべてのAPI�
 
 ### 6.1 Phase 0: ユーザーコンテクスト抽出（ローカル実装）
 
-**実行環境**: Jupyter Notebook内（Ollama経由）
+**実行環境**: Jupyter NotebookまたはCLI（Ollama経由）
 
-v1.2では外部ChatGPTカスタムGPTを使用していましたが、ローカル版では同等の機能をノートブック内に実装します。
+v1.2では外部ChatGPTカスタムGPTを使用していましたが、ローカル版ではテキスト入力を
+ローカルモデルで構造化し、画像入力時はOllamaのvision対応モデルで観察結果を抽出します。
 
 | 項目 | 内容 |
 |------|------|
-| 入力方式 | インタラクティブ対話セル |
-| 処理 | gpt-oss:20bが質問を生成 → ユーザーが回答 → コンテクストをまとめる |
-| 質問数 | 5〜10問（調整可能） |
+| 入力方式 | CLI/APIのテキスト、YAML/JSONファイル、任意のローカル画像 |
+| 処理 | テキストまたは画像をローカルOllamaモデルが構造化 |
+| 質問数 | 対話入力または事前に構造化したコンテクストを指定 |
 | 出力 | YAML形式のユーザーコンテクスト |
-| 画像対応 | 不可（テキストベースのみ）※将来的に視覚対応モデルで実現可能 |
+| 画像対応 | Ollamaのvision対応モデルを指定した場合に対応 |
 
 **実装例**:
 ```python
@@ -295,7 +298,7 @@ v1.2のすべてのフェーズを以下の方針で移行：
 | v1.2プロンプト | ローカル版での調整 |
 |---------------|-----------------|
 | システムプロンプト + ユーザープロンプト | 単一プロンプトに統合（Ollamaはシステムプロンプトのサポートが限定的） |
-| 長いコンテクスト | 8,192トークン制限を考慮し、重要情報を優先的に投入 |
+| 長いコンテクスト | 32,768トークン設定を使い、people_listは分割、章参照では除外 |
 | JSON出力指示 | より明示的な指示と例示を追加 |
 | 日本語出力 | プロンプト内で明示的に「日本語で」を強調 |
 
@@ -483,7 +486,7 @@ def save_checkpoint(phase_name: str, data: dict) -> None:
         phase_name: フェーズ名（例: "phase1_expansion"）
         data: 保存するデータ（辞書形式）
     """
-    checkpoint_dir = Path("./output/checkpoints")
+    checkpoint_dir = Path("./output/world_<run_id>/checkpoints")
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -504,7 +507,7 @@ def load_latest_checkpoint(phase_name: str) -> dict:
     Returns:
         チェックポイントデータ（存在しない場合は空辞書）
     """
-    checkpoint_dir = Path("./output/checkpoints")
+    checkpoint_dir = Path("./output/world_<run_id>/checkpoints")
     pattern = f"{phase_name}_*.json"
     files = sorted(checkpoint_dir.glob(pattern), reverse=True)
 
@@ -525,9 +528,10 @@ v1.2と同一のデータ構造を維持します。詳細は`DESIGN_SPEC.md`の
 ローカル版では、すべての中間データをファイルシステムに保存します。
 
 ```
-output/
+output/world_<run_id>/
+├── input/
+│   └── user_context.yaml
 ├── intermediate/
-│   ├── 00_user_context.yaml
 │   ├── 01_desire_list.yaml
 │   ├── 02_ability_list.yaml
 │   ├── 03_role_list.yaml
@@ -548,17 +552,18 @@ output/
 │   ├── 21_plot_1.yaml ... 30_plot_10.yaml
 │   ├── 31_plot_keywords_1.yaml ... 40_plot_keywords_10.yaml
 │   └── 41_plot_reference_1.yaml ... 50_plot_reference_10.yaml
-├── novels/
-│   ├── chapter_01.txt
-│   ├── chapter_02.txt
-│   ...
-│   └── chapter_10.txt
-└── references/
-    ├── characters.md
-    ├── plot.md
-    ├── user_context.md
-    ...
-    └── plottype_list.md
+└── final/
+    ├── novels/
+    │   ├── chapter_01.txt
+    │   ├── chapter_02.txt
+    │   ...
+    │   └── chapter_10.txt
+    └── references/
+        ├── characters.md
+        ├── plot.md
+        ├── user_context.md
+        ...
+        └── plottype_list.md
 ```
 
 ---
@@ -583,7 +588,7 @@ output/
 | 資料数 | 17種類 | 同一 |
 | 各資料の最大トークン数 | 4,096トークン | v1.2は16,000 |
 | 内容 | 抽象的に解釈・補足された構造化資料 | 同一 |
-| 出力先 | output/references/*.md | v1.2はノートブック内 |
+| 出力先 | output/world_<run_id>/final/references/*.md | v1.2はノートブック内 |
 
 ### 9.3 品質トレードオフ
 
@@ -695,11 +700,11 @@ base_context = cache.get_or_generate(
 | Phase 0 | 1回 | 1〜2分 | 3〜5分 |
 | Phase 1 | 5回 | 5〜10分 | 15〜25分 |
 | Phase 2 | 1回 | 1〜2分 | 3〜5分 |
-| Phase 3 | 10回 | 10〜20分 | 30〜50分 |
+| Phase 3 | 14回（people_list分割を含む） | 10〜20分 | 30〜50分 |
 | Phase 4 | 31回 | 30〜60分 | 1.5〜3時間 |
 | Phase 5 | 10回 | 20〜40分 | 1〜2時間 |
 | Phase 6 | 17回 | 15〜30分 | 45分〜1.5時間 |
-| **合計** | **75回** | **1.5〜3時間** | **4〜8時間** |
+| **合計** | **91回** | **1.5〜3時間** | **4〜8時間** |
 
 ---
 
@@ -709,7 +714,7 @@ base_context = cache.get_or_generate(
 
 | 制約 | 詳細 | 対策 |
 |------|------|------|
-| コンテキスト長制限 | 8,192トークン（v1.2より短い） | 重要情報を優先的に投入、長いコンテクストは分割 |
+| コンテキスト長制限 | 32,768トークン（モデル上限内で設定） | people_listを分割し、章参照では不要な100人データを除外 |
 | 生成トークン数制限 | 4,096トークン/リクエスト（v1.2は16,000） | 章を複数回に分けて生成する選択肢を提供 |
 | メモリ使用量 | 20Bモデルは大量のRAM/VRAMを消費 | 量子化モデルの使用、バッチサイズの調整 |
 | 処理速度 | ローカル推論のため、クラウドAPIより遅い | GPU利用、量子化、並列処理 |
@@ -719,8 +724,9 @@ base_context = cache.get_or_generate(
 
 | 制約 | 詳細 | 対策 |
 |------|------|------|
-| 画像入力非対応 | gpt-oss:20bはテキストのみ | 画像コンテクスト抽出機能は削除（将来的に視覚対応モデルで実現） |
-| リアルタイム性 | 長時間実行のため中断が困難 | チェックポイント機能、フェーズ単位での実行オプション |
+| 画像入力 | gpt-oss:20bはテキストのみ | `llava:latest`などvision対応モデルを`--vision-model`で指定 |
+| 長文出力 | ローカルモデルの1回の出力上限 | 上限到達時に続きを自動生成して結合 |
+| リアルタイム性 | 長時間実行のため中断が困難 | リクエスト単位のチェックポイントと実行ID指定で再開 |
 | エラーハンドリング | ローカル環境のため外部サービスのようなSLA保証なし | リトライ機構、詳細なエラーログ |
 
 ### 11.3 前提条件
@@ -810,7 +816,7 @@ save_checkpoint('migration', old_data)
 
 | 改善項目 | 内容 |
 |---------|------|
-| マルチモーダル対応 | 視覚対応モデルによる画像コンテクスト抽出の復活 |
+| 高度な画像前処理 | 複数画像の比較や画像内テキスト抽出の強化 |
 | 分散処理 | 複数マシンでの並列実行（Ray, Dask等） |
 | ファインチューニング | ユーザー独自のスタイルで追加学習 |
 | データベース統合 | SQLite/PostgreSQLでの中間データ管理 |

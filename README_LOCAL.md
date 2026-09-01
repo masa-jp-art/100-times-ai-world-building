@@ -1,443 +1,311 @@
-# 100 TIMES AI WORLD BUILDING - Local Version
+# 100 TIMES AI WORLD BUILDING — Local Version
 
-**完全ローカル実行版 v2.0 - Ollama + gpt-oss:20b**
+このファイルは、Ollamaを使って本リポジトリをローカル実行するためのガイドです。
+最初に読む人は、まず[完全作例](examples/neo_tokyo_complete/)を確認し、その後このページの
+クイックスタートを実行してください。
 
-このプロジェクトは、AIを活用した世界観構築ワークフローを完全にローカル環境で実行するバージョンです。
+## これは何か
 
-## 特徴
+入力したナラティブ（テーマ、舞台、主人公のアイデアなど）をもとに、次の工程を順番に実行します。
 
-- ✅ **完全なプライバシー保護**: データが外部サーバーに送信されない
-- ✅ **ゼロコスト運用**: API利用料金が発生しない
-- ✅ **オフライン動作**: インターネット接続不要（初回モデルダウンロード後）
-- ✅ **カスタマイズ性**: モデルパラメータの細かい調整が可能
-- ✅ **チェックポイント機能**: 長時間実行でも中断・再開が可能
-- ✅ **実行ごと別ディレクトリ保存**: 何度実行しても過去の出力が上書きされない
+1. ナラティブの保存・必要に応じた構造化
+2. 願望・能力・役割・プロット形式の拡張
+3. キャラクター生成
+4. 物語世界の構築
+5. 10章分のプロット生成
+6. 各章の小説本文生成
+7. 設定資料集の生成
 
-## モデル選択肢
+生成中の入力・途中生成物・チェックポイント・最終成果物は、1回の実行ごとに
+`output/world_<run_id>/` へまとめて保存されます。複数回実行した場合は
+`output/batch_<batch_id>/worlds/` に世界ごとのパッケージが作られます。
 
-このプロジェクトでは、マシンのスペックに合わせて以下のモデルを選択できます。
+## 重要な前提
 
-| モデル | 区分 | 必要VRAM / RAM | 特徴 |
-|--------|------|----------------|------|
-| `gpt-oss:20b` | **標準（デフォルト）** | ≥16 GB VRAM または ≥32 GB RAM | フル精度20Bモデル。最も高品質 |
-| `gpt-oss:20b-q8` | 8-bit量子化版 | 16〜24 GB VRAM | 品質とメモリのバランス型 |
-| `gpt-oss:20b-q4` | 4-bit量子化版 | 8〜16 GB VRAM | メモリ使用量最小 |
-| `gpt-oss:120b` | **高性能マシン向け** | ≥60 GB VRAM または大容量RAM | 120Bモデル。最高品質、要ハイエンド環境 |
+- 生成処理はOllamaへ送るため、生成時に入力や出力をOpenAIなどの外部APIへ送信しません。
+- 初回のPython依存関係とOllamaモデルの取得にはインターネット接続が必要です。
+- 完全パイプラインはモデルとマシンによって数時間かかることがあります。
+- `--choice 1` はPhase 1だけの短い確認用です。最終成果物まで作る場合は `--choice 2` を使います。
+- 生成結果の品質、速度、完全な再現性は、Ollamaのモデル、モデルのバージョン、ハードウェアに依存します。
 
-### モデルのダウンロード
+## 必要なもの
+
+- Python 3.10以上
+- [Ollama](https://ollama.com/)
+- 生成に使用するOllamaモデル
+- 完全版を実行する場合は、モデルと出力を保存する十分なRAM・ストレージ
+
+既定モデルは `gpt-oss:20b` です。利用できるモデルはマシンによって異なるため、
+`ollama list` で確認してください。別のOllamaモデルも `--model` で指定できます。
+
+## クイックスタート
+
+### 1. Ollamaを用意する
+
+Ollamaをインストールして、モデルを取得します。
 
 ```bash
-# 標準モデル（デフォルト）
 ollama pull gpt-oss:20b
-
-# 量子化版（VRAMが限られている場合）
-ollama pull gpt-oss:20b-q8   # 8-bit量子化
-ollama pull gpt-oss:20b-q4   # 4-bit量子化
-
-# 高性能マシン向け（十分なVRAM / RAMがある場合）
-ollama pull gpt-oss:120b
 ```
 
-## システム要件
-
-### 最小要件
-- **OS**: Linux / macOS / Windows (WSL2推奨)
-- **CPU**: 4コア以上
-- **RAM**: 16GB以上
-- **ストレージ**: 50GB以上の空き容量
-- **Python**: 3.10以上
-
-### 推奨要件
-- **CPU**: 8コア以上
-- **RAM**: 32GB以上
-- **GPU**: NVIDIA RTX 3060 (12GB VRAM) 以上
-- **ストレージ**: 100GB以上のSSD
-
-## セットアップ
-
-### 1. Ollamaのインストール
-
-#### macOS / Linux
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-```
-
-#### Windows
-PowerShellで実行:
-```powershell
-winget install Ollama.Ollama
-```
-
-### 2. Ollamaサーバーの起動
+別ターミナルでサーバーを起動します。
 
 ```bash
 ollama serve
 ```
 
-別のターミナルウィンドウで実行してください。サーバーはバックグラウンドで動作します。
+### 2. Python環境を用意する
 
-### 3. モデルのダウンロード
-
-```bash
-# フル精度版（推奨: 十分なVRAMがある場合）
-ollama pull gpt-oss:20b
-
-# または、量子化版（VRAMが限られている場合）
-ollama pull gpt-oss:20b-q8   # 8-bit量子化
-ollama pull gpt-oss:20b-q4   # 4-bit量子化
-
-# 高性能マシン向け
-ollama pull gpt-oss:120b
-```
-
-ダウンロードには数GBのデータ転送があるため、時間がかかる場合があります。
-
-### 4. Python環境のセットアップ
+リポジトリのルートで実行します。
 
 ```bash
-# プロジェクトディレクトリに移動
-cd 100-times-ai-world-building
-
-# 仮想環境の作成（推奨）
-python -m venv venv
-
-# 仮想環境のアクティベート
-# macOS/Linux:
-source venv/bin/activate
-# Windows:
-venv\Scripts\activate
-
-# 依存関係のインストール
-pip install -r requirements-local.txt
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python -m pip install -r requirements-local.txt
 ```
 
-### 5. Jupyter Notebookの起動
+`requirements-local.txt` には、CLIの実行、ノートブック、テストに必要な依存関係をまとめています。
+
+セットアップ状態を確認します。
 
 ```bash
-jupyter notebook
+python setup_check.py
 ```
 
-ブラウザが自動的に開き、Jupyter環境が表示されます。
+### 3. まずPhase 1だけ実行する
 
-### 6. ノートブックを開く
-
-`local-v2.0.ipynb` を開いて、セルを順番に実行してください。
-
-## 使い方
-
-### 基本的な流れ
-
-1. **ノートブックを開く**: `local-v2.0.ipynb`
-2. **セルを順番に実行**: Cell 1から順に実行
-3. **ユーザーコンテクストを入力**: Cell 3でコンテクストを編集
-4. **Phase 1を実行**: 100倍拡張を実行（5〜25分）
-5. **結果を確認**: 生成されたリストを確認
-6. **完全パイプライン実行（オプション）**: Phase 2以降を実行（1.5〜8時間）
-
-### コマンドラインからの実行
+短い動作確認では、100倍拡張までを実行します。
 
 ```bash
-python example_run.py
+python example_run.py --choice 1 \
+  --context-file examples/neo_tokyo_complete/input/user_context.yaml \
+  --model gpt-oss:20b-q4 \
+  --output-dir output
 ```
 
-起動すると以下のメニューが表示されます:
+### 4. 完全パイプラインを実行する
 
-```
-100 TIMES AI WORLD BUILDING - Example Run
+Phase 0〜6を最後まで実行し、10章の本文と設定資料を生成します。
 
-Select an option:
-1. Run Phase 1 only (quick test, ~5-25 min)
-2. Run full pipeline (complete generation, ~1.5-8 hours)
-3. Resume from checkpoint
-4. Exit
-```
-
-いずれかを選択すると **モデル選択メニュー** が表示されます:
-
-```
---- Model Selection ---
-1. gpt-oss:20b (standard – recommended)
-   Full-precision 20B model. Best quality for most machines with ≥32 GB RAM or ≥16 GB VRAM.
-2. gpt-oss:20b-q8 (8-bit quantized)
-   8-bit quantized 20B model. Balanced quality / memory trade-off (16–24 GB VRAM).
-3. gpt-oss:20b-q4 (4-bit quantized)
-   4-bit quantized 20B model. Lowest memory footprint (8–16 GB VRAM).
-4. gpt-oss:120b (high-end – powerful machines only)
-   120B model. Highest generation quality. Requires ≥60 GB VRAM or very large RAM.
-
-Select model [1]:
+```bash
+python example_run.py --choice 2 --yes \
+  --context-file examples/neo_tokyo_complete/input/user_context.yaml \
+  --model gpt-oss:20b \
+  --output-dir output
 ```
 
-Enterを押すと `gpt-oss:20b`（デフォルト）が選択されます。
+完了後、表示された `output/world_<run_id>/` を開いて成果物を確認してください。
 
-### 実行ごとの出力ディレクトリ
+## 入力の渡し方
 
-このプロジェクトは1回で完結するものではなく、**何度も実行してアイデアを探索する**ことを想定しています。そのため、各実行の出力は自動的に別ディレクトリへ保存されます:
+`--context-file` には、YAML、JSON、またはプレーンテキストを指定できます。
+YAML/JSONの構造をそのまま使う場合は通常 `--extract-context` は不要です。
 
-```
-output/
-├── run_20260101_120000/     ← 1回目の実行
-│   ├── intermediate/        # 中間データ (YAML)
-│   ├── checkpoints/         # チェックポイント (JSON)
-│   ├── novels/              # 生成された小説章
-│   └── references/          # 設定資料集
-├── run_20260102_093000/     ← 2回目の実行
-│   ├── intermediate/
-│   ├── checkpoints/
-│   ├── novels/
-│   └── references/
-└── run_20260103_150500/     ← 3回目の実行（以降同様）
+```bash
+# 構造化済みYAMLを使う
+python example_run.py --choice 2 --context-file ./my_context.yaml --model gpt-oss:20b
+
+# プレーンテキストをローカルモデルで構造化してから使う
+python example_run.py --choice 2 --context-file ./idea.txt --extract-context
 ```
 
-実行後に `Run ID` が表示されるので、どのディレクトリが最新かすぐに分かります。
+画像をコンテクストに含める場合は、ローカルのvisionモデルを指定します。
 
-### Pythonコードからの利用例
+```bash
+ollama pull llava:latest
+python example_run.py --choice 2 \
+  --context-file ./idea.txt \
+  --image ./reference.png \
+  --vision-model llava:latest
+```
+
+画像も外部サービスには送信されません。
+
+## 繰り返し生成する
+
+同じ入力から独立した世界を複数作るには `--runs` を指定します。各世界は別ディレクトリに保存され、
+前の実行を上書きしません。
+
+```bash
+python example_run.py --choice 2 --runs 10 --yes \
+  --context-file ./my_context.yaml \
+  --model gpt-oss:20b-q4 \
+  --output-dir output
+```
+
+バッチ全体のseedを固定すると、各周回に異なるseedを決定的に割り当てられます。
+ただし、モデルやOllamaのバージョンが変われば完全一致は保証されません。
+
+```bash
+python example_run.py --choice 2 --runs 10 --seed 20260827 --yes \
+  --context-file ./my_context.yaml \
+  --model gpt-oss:20b-q4 \
+  --output-dir output
+```
+
+`--seed` を省略すると、実行ごとに新しいseedが生成され、`run_manifest.json` に保存されます。
+
+## 中断した実行を再開する
+
+各フェーズのチェックポイントは実行パッケージ内に保存されます。再開時は、元の実行IDと出力ルートを指定します。
+モデルを指定しなければ、保存済みマニフェストのモデル構成が優先されます。
+
+```bash
+python example_run.py --choice 3 \
+  --run-id 20260829_123456_789012 \
+  --output-dir output
+```
+
+`--run-id` はディレクトリ名 `world_<run_id>` の `world_` を除いた部分です。
+バッチ内の世界も `--run-id` で指定できます。
+
+## 出力構造
+
+### 1回の実行
+
+```text
+output/world_<run_id>/
+├── run_manifest.json       # モデル、seed、設定ハッシュ、実行状態
+├── input/                  # 入力コンテクスト
+├── intermediate/           # Phase 1〜4の途中生成物（YAML）
+├── checkpoints/            # 再開用のフェーズ状態（JSON）
+└── final/
+    ├── novels/             # chapter_01.txt 〜 chapter_10.txt
+    └── references/         # 設定資料（Markdown）
+```
+
+### 複数回の実行
+
+```text
+output/batch_<batch_id>/
+├── batch_manifest.json     # バッチ全体のseed、件数、状態
+└── worlds/
+    ├── world_<run_id>/     # 1周目
+    └── world_<run_id>/     # 2周目以降
+```
+
+`output/` は生成用で、Git管理対象外です。確認済みの作例だけを
+[`examples/`](examples/README.md) に、同じパッケージ構造で保存します。
+
+## Pythonから使う
 
 ```python
-from src import Pipeline
+from src import Pipeline, run_batch
 
-# デフォルト (gpt-oss:20b) で実行
-pipeline = Pipeline()
-
-# 量子化版で実行
-pipeline = Pipeline(model="gpt-oss:20b-q8")
-
-# 高性能マシン向けモデルで実行
-pipeline = Pipeline(model="gpt-oss:120b")
-
-# 実行IDを固定（再現性が必要な場合）
-pipeline = Pipeline(run_id="my_experiment_01")
-
-print(f"出力先: {pipeline.base_dir}")  # ./output/run_YYYYMMDD_HHMMSS
+pipeline = Pipeline(
+    model="gpt-oss:20b-q4",
+    output_dir="output",
+    seed=12345,
+)
+result = pipeline.run_full_pipeline("""
+context:
+  theme: "海底都市と地上文明の対立"
+  mood: "静かな緊張感"
+  setting: "23世紀の太平洋"
+""")
+print(pipeline.base_dir)
 ```
 
-### ディレクトリ構成
+複数周回をコードから実行する場合:
 
-```
-100-times-ai-world-building/
-├── local-v2.0.ipynb          # メインノートブック
-├── README_LOCAL.md           # このファイル
-├── DESIGN_SPEC_LOCAL.md      # 設計仕様書
-├── requirements-local.txt    # Python依存関係
-├── config/
-│   ├── ollama_config.yaml   # Ollama設定
-│   └── prompts/             # プロンプトテンプレート
-├── src/
-│   ├── ollama_client.py     # Ollama APIクライアント
-│   ├── checkpoint_manager.py # チェックポイント管理
-│   ├── utils.py             # ユーティリティ関数
-│   └── pipeline.py          # パイプライン制御
-├── output/                   # 生成結果（Gitで管理されない）
-│   ├── run_YYYYMMDD_HHMMSS/ # 実行ごとの出力ディレクトリ
-│   │   ├── intermediate/    # 中間データ
-│   │   ├── checkpoints/     # チェックポイント
-│   │   ├── novels/          # 生成された小説
-│   │   └── references/      # 設定資料集
-│   └── ...
-└── tests/                    # テストファイル
+```python
+summary = run_batch(
+    user_context="context:\n  theme: 海底都市と地上文明の対立\n",
+    runs=10,
+    seed=20260827,
+    pipeline_kwargs={"model": "gpt-oss:20b-q4", "output_dir": "output"},
+)
+print(summary["summary_path"])
 ```
 
-## 設定のカスタマイズ
+## モデルをフェーズごとに分ける
 
-### モデルの変更（設定ファイル経由）
+通常は `--model` 1つで全フェーズを実行できます。役割ごとにモデルを分ける場合は、次のオプションを使います。
 
-`config/ollama_config.yaml`を編集:
-
-```yaml
-model:
-  name: "gpt-oss:20b-q4"  # 軽量版に変更
+```bash
+python example_run.py --choice 2 \
+  --structured-model gpt-oss:20b-q4 \
+  --story-model gpt-oss:20b \
+  --reference-model gpt-oss:20b-q4
 ```
 
-### 生成パラメータの調整
+- `--structured-model`: JSONや世界設定を生成するフェーズ
+- `--story-model`: 小説本文を生成するフェーズ
+- `--reference-model`: Markdownの設定資料を生成するフェーズ
+- `--vision-model`: 画像コンテクストの解析
 
-```yaml
-phases:
-  phase5_novel:
-    temperature: 1.2  # より創造的な出力（デフォルト: 1.0）
-    num_predict: 8192  # より長い出力（デフォルト: 4096）
-```
+## 設定とプロンプト
+
+- `config/ollama_config.yaml`: Ollama接続、モデル、生成パラメータ、出力先、チェックポイント設定
+- `config/prompts/`: 各フェーズのプロンプトテンプレート
+- `src/pipeline.py`: Phase 0〜6の実行制御
+- `src/batch.py`: 複数周回の実行
+- `src/validation.py`: 生成物の件数・構造検証
+- `src/run_manifest.py`: seed、モデル、設定ハッシュ、状態の記録
+- `src/checkpoint_manager.py`: 中断・再開用状態の保存
+
+構造化出力はローカルモデルが1回で100件を返しきれない場合に備え、複数の小さなリクエストへ分割します。
+この挙動は `config/ollama_config.yaml` の `items_per_request` などで調整できます。
 
 ## トラブルシューティング
 
-### Ollamaサーバーに接続できない
+### `Connection refused` が出る
 
-**エラー**: `Connection refused`
+Ollamaサーバーが起動しているか確認します。
 
-**解決策**:
 ```bash
-# サーバーを起動
 ollama serve
-
-# または、バックグラウンドで起動
-nohup ollama serve &
+ollama list
 ```
 
-### メモリ不足エラー
+### モデルが見つからない
 
-**エラー**: `CUDA out of memory` または システムフリーズ
+モデル名はローカルに存在する名前と完全に一致させます。
 
-**解決策**:
-1. 量子化モデルに切り替え:
 ```bash
+ollama list
 ollama pull gpt-oss:20b-q4
 ```
 
-2. `config/ollama_config.yaml`を編集:
-```yaml
-model:
-  name: "gpt-oss:20b-q4"
+### メモリ不足・処理が遅い
 
-performance:
-  max_parallel_requests: 1  # 並列実行を無効化
-```
+量子化モデルを選び、同時実行数を増やさずに実行してください。完全版は大量の構造化出力と10章の本文を生成するため、
+CPUのみの環境では長時間かかります。
 
-3. コマンドライン実行時は量子化モデルを選択（メニューの2番または3番）
+### JSONの解析に失敗する
 
-### JSON出力が不正
+構造化フェーズには再試行とJSON互換フォールバックがあります。それでも失敗する場合は、
+より大きいモデルを使うか、`config/ollama_config.yaml` で温度を下げてください。
 
-**エラー**: `JSONDecodeError`
+## ノートブック版
 
-**解決策**:
-- 自動的にリトライされます（最大3回）
-- それでも失敗する場合は、temperatureを下げてください:
+- `20250601-100-TIMES-AI-WORLD-BUILDING-v1.2.ipynb`: OpenAI / Anthropic APIを使う元のクラウド版
+- `local-v2.0.ipynb`: Ollamaを使うローカル版
 
-```yaml
-phases:
-  phase1_expansion:
-    temperature: 0.5  # より決定論的な出力
-```
+ノートブックは工程をセル単位で確認したい場合に使えます。再実行、チェックポイント再開、複数周回、
+成果物管理を行う場合は `example_run.py` またはPython APIを推奨します。
 
-### 実行が遅い
+## 関連リポジトリ
 
-**対策**:
-1. GPUを使用していることを確認:
-```bash
-ollama list  # モデル情報を表示
-```
+100 TIMES AIシリーズの工程別リポジトリです。これらは関連プロジェクトですが、共通のインストールパッケージではありません。
 
-2. 並列処理を有効化:
-```yaml
-performance:
-  max_parallel_requests: 3  # 複数リクエストを並列実行
-```
-
-3. より軽量なモデルを使用（メニューから4-bit量子化版を選択）
-
-## パフォーマンス目安
-
-### GPU環境（RTX 3090）
-- Phase 1（100倍拡張）: 5〜10分
-- Phase 2〜6（完全実行）: 1.5〜3時間
-
-### CPU環境
-- Phase 1（100倍拡張）: 15〜25分
-- Phase 2〜6（完全実行）: 4〜8時間
-
-## 高度な使い方
-
-### チェックポイントからの再開
-
-```python
-# チェックポイントのリスト表示
-pipeline.checkpoint_manager.list_checkpoints()
-
-# 特定のフェーズから再開
-pipeline.resume_from_checkpoint("phase1_expansion")
-```
-
-### カスタムプロンプトの使用
-
-`config/prompts/`ディレクトリに新しいYAMLファイルを追加:
-
-```yaml
-# config/prompts/custom.yaml
-my_custom_prompt:
-  system: "カスタムシステムプロンプト"
-  user: "カスタムユーザープロンプト: {variable}"
-```
+- [100 TIMES AI HEROES](https://github.com/masa-san-jp/100-times-ai-heroes)：願望・能力・役割などを組み合わせ、キャラクター設定と画像生成用プロンプトを大量に作るプロジェクト。
+- [100 TIMES AI HERO'S JOURNEY](https://github.com/masa-san-jp/100-times-ai-heros-journey)：作家の自己ナラティブから、ヒーローズ・ジャーニー形式のキャラクター、プロット、物語を生成するプロジェクト。
+- [100 TIMES AI WORLD BUILDING](https://github.com/masa-san-jp/100-times-ai-world-building)：本リポジトリ。キャラクターや物語の材料を、設定資料・世界観・プロット・章本文へ展開するプロジェクト。
+- [100 TIMES AI MANGA DRAWING](https://github.com/masa-san-jp/100-times-ai-manga-drawing)：生成AIを使ったマンガ制作工程の分析・構造化と高速化の試みをまとめた制作・実験リポジトリ。
 
 ## テスト
 
 ```bash
-# すべてのテストを実行
 pytest tests/ -v
-
-# カバレッジレポート付き
-pytest tests/ --cov=src --cov-report=html
 ```
 
-## よくある質問（FAQ）
+## 利用条件
 
-### Q1: v1.2（クラウド版）との違いは？
-
-**A**: 主な違いは以下の通りです:
-- API: OpenAI/Claude → Ollama
-- コスト: 従量課金 → ゼロ
-- プライバシー: データ外部送信あり → 完全ローカル
-- 品質: GPT-4/Claude水準 → gpt-oss:20b水準（やや劣る）
-- 実行時間: ネットワーク遅延あり → ローカル計算負荷
-
-### Q2: 生成品質を向上させるには？
-
-**A**: 以下の方法を試してください:
-1. フル精度モデル（gpt-oss:20b）を使用
-2. 高性能マシンなら gpt-oss:120b を使用
-3. temperatureを調整（創造性 vs 一貫性）
-4. プロンプトを詳細化
-
-### Q3: 他のモデルを使用できますか？
-
-**A**: はい。Ollamaがサポートする任意のモデルを使用できます:
-```yaml
-model:
-  name: "llama3:70b"  # または他のモデル
-```
-
-利用可能なモデル一覧:
-```bash
-ollama list
-```
-
-### Q4: 同じテーマで複数回実行するとどうなりますか？
-
-**A**: 実行ごとに `output/run_YYYYMMDD_HHMMSS/` という別ディレクトリが作成されるため、過去の出力は上書きされません。異なるモデルやパラメータでの実験結果を全て保持できます。
-
-### Q5: 商用利用は可能ですか？
-
-**A**: gpt-ossモデルのライセンスに従ってください。詳細はOllamaの公式ドキュメントを参照してください。
-
-## 貢献
-
-バグ報告や機能リクエストは、GitHubのIssuesで受け付けています。
-
-## ライセンス
-
-このプロジェクトの使用条件については、書籍「100 TIMES AI WORLD BUILDING」をご参照ください。
-
-## サポート
-
-- [GitHub Issues](https://github.com/masa-jp-art/100-times-ai-world-building/issues)
-- [設計仕様書](DESIGN_SPEC_LOCAL.md)
-- [note記事](https://note.com/msfmnkns/n/n26ddda02e0d2)
-
-## 更新履歴
-
-### v2.1-local (2026-03-22)
-- ローカル版デフォルトモデルを `gpt-oss:20b` に明示
-- 量子化版 (`gpt-oss:20b-q8`, `gpt-oss:20b-q4`) をモデル選択肢として追加
-- 高性能マシン向け `gpt-oss:120b` を選択肢として追加
-- CLI / Pythonコードでモデルを起動時に選択可能に
-- 実行ごとに `output/run_YYYYMMDD_HHMMSS/` へ出力を保存（上書き防止）
-
-### v2.0-local (2026-02-14)
-- 初回リリース
-- Ollama + gpt-oss:20b対応
-- 完全ローカル実行環境の構築
-- チェックポイント機能の追加
-- .gitignore設定による開発履歴の保護
+このリポジトリには現在 `LICENSE` ファイルがありません。コードや生成物の利用・再配布条件は、
+作者に確認してください。Ollamaや使用するモデルには、それぞれのライセンス・利用条件が適用されます。
 
 ---
 
-**Author**: masa-jp-art
-**Version**: v2.1-local
-**Last Updated**: 2026-03-22
+**Author**: masa-san-jp
+**Last Updated**: 2026-08-29

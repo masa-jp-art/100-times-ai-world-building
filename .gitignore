@@ -16,6 +16,9 @@
 output/
 *.output/
 
+# Test-created world packages kept outside the user output collection
+test-output/
+
 # Intermediate data files
 intermediate/
 *.intermediate/
@@ -217,6 +220,14 @@ $RECYCLE.BIN/
 # ========================================
 # IDE / Editor
 # ========================================
+
+# ========================================
+# Curated examples (intentionally version-controlled)
+# ========================================
+# The normal output/ directory remains ignored, but reviewed examples may be
+# stored under examples/ and committed with their manifests and artifacts.
+!examples/
+!examples/**
 
 # VSCode
 .vscode/

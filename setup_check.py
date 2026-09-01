@@ -13,7 +13,7 @@ def check_python_version():
     version = sys.version_info
     print(f"Python version: {version.major}.{version.minor}.{version.micro}")
 
-    if version.major >= 3 and version.minor >= 10:
+    if version.major > 3 or (version.major == 3 and version.minor >= 10):
         print("✓ Python version OK (3.10+)")
         return True
     else:
@@ -27,13 +27,8 @@ def check_directory_structure():
         "config",
         "config/prompts",
         "src",
-        "output",
-        "output/intermediate",
-        "output/checkpoints",
-        "output/novels",
-        "output/references",
         "tests",
-        "logs",
+        "examples",
     ]
 
     all_exist = True
@@ -54,11 +49,18 @@ def check_required_files():
         "config/ollama_config.yaml",
         "config/prompts/expansion.yaml",
         "config/prompts/world_building.yaml",
+        "config/prompts/plot_generation.yaml",
+        "config/prompts/story_generation.yaml",
+        "example_run.py",
         "src/__init__.py",
         "src/ollama_client.py",
         "src/checkpoint_manager.py",
         "src/utils.py",
         "src/pipeline.py",
+        "src/batch.py",
+        "src/output_layout.py",
+        "src/run_manifest.py",
+        "src/validation.py",
         "local-v2.0.ipynb",
         "README_LOCAL.md",
         "DESIGN_SPEC_LOCAL.md",
@@ -81,17 +83,18 @@ def check_required_files():
 def check_dependencies():
     """Check if required Python packages are installed"""
     required_packages = [
-        "ollama",
         "yaml",
         "requests",
         "tqdm",
-        "psutil",
         "loguru",
-        "pytest",
+    ]
+    optional_packages = [
+        "ollama",  # Optional SDK; the CLI uses the Ollama HTTP API directly.
+        "psutil",  # Optional notebook/system-monitoring support.
         "jupyter",
     ]
 
-    print("\nChecking Python packages...")
+    print("\nChecking Python packages required by the CLI...")
     all_installed = True
 
     for package in required_packages:
@@ -104,6 +107,14 @@ def check_dependencies():
         except ImportError:
             print(f"✗ {package} (not installed)")
             all_installed = False
+
+    print("\nChecking optional notebook packages...")
+    for package in optional_packages:
+        try:
+            __import__(package)
+            print(f"✓ {package}")
+        except ImportError:
+            print(f"⚠ {package} (optional; install for notebook/system extras)")
 
     return all_installed
 
@@ -214,9 +225,9 @@ def main():
     if all_passed:
         print("✓ All checks passed! You're ready to start.")
         print("\nNext steps:")
-        print("1. Open Jupyter Notebook: jupyter notebook")
-        print("2. Open local-v2.0.ipynb")
-        print("3. Run cells sequentially")
+        print("1. Run a quick Phase 1 check: python example_run.py --choice 1")
+        print("2. Run the complete pipeline: python example_run.py --choice 2")
+        print("3. For the notebook workflow, open local-v2.0.ipynb")
     else:
         print("✗ Some checks failed. Please fix the issues above.")
         print("\nCommon fixes:")

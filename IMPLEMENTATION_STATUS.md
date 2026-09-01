@@ -1,8 +1,17 @@
 # Implementation Status - 100 TIMES AI WORLD BUILDING Local Version
 
-**Date**: 2026-02-14
-**Version**: v2.0-local
-**Status**: ✅ Complete
+**Date**: 2026-08-29
+**Version**: v2.1-local
+**Status**: ✅ Core implementation complete; local E2E verification complete for one full example
+
+### 実機確認メモ（2026-08-28）
+
+- setup_check: 全項目PASS（CLI必須依存、Ollamaサーバー、`gpt-oss:20b`）
+- Ollama最小リクエスト: 成功（seed伝播を含む）
+- 100件JSON単体リクエスト: 成功（100件、`done_reason=stop`）
+- Phase 1: 有効な2種類の100件リストを保存し、未完了runを再開できることを確認
+- 完全パイプライン: 成功（`examples/neo_tokyo_complete/`、Phase 0〜6全成果物）
+- 10周バッチ: 未実施。実機の長時間推論・GPU共有状態に依存するため、別途検証する
 
 ---
 
@@ -11,7 +20,7 @@
 ### ✅ Phase 0: コンテクスト抽出
 - **状態**: 実装完了
 - **ファイル**: `src/pipeline.py:run_phase0_context_extraction()`
-- **出力**: `output/intermediate/00_user_context.yaml`
+- **出力**: `output/world_<id>/input/user_context.yaml`
 
 ### ✅ Phase 1: 100倍拡張
 - **状態**: 実装完了
@@ -60,13 +69,13 @@
 - **状態**: 実装完了
 - **ファイル**: `src/pipeline.py:run_phase5_novel_generation()`
 - **プロンプト**: `config/prompts/story_generation.yaml:story_chapter`
-- **出力**: `output/novels/chapter_01-10.txt` (全10章の小説本文)
+- **出力**: `output/world_<id>/final/novels/chapter_01-10.txt` (全10章の小説本文)
 
 ### ✅ Phase 6: 設定資料集生成
 - **状態**: 実装完了
 - **ファイル**: `src/pipeline.py:run_phase6_reference_generation()`
 - **プロンプト**: `config/prompts/story_generation.yaml:reference_*`
-- **出力**: `output/references/*.md` (17種類の詳細資料)
+- **出力**: `output/world_<id>/final/references/*.md` (17種類の詳細資料)
   - characters.md
   - plot.md
   - user_context.md
@@ -123,6 +132,12 @@
   - 進捗表示
 - **状態**: 完全実装（Phase 0-6）
 
+### ✅ 実行管理・品質保証
+- **`src/run_manifest.py`**: run_seed、モデル、設定・プロンプトのハッシュ、実行状態を保存
+- **`src/validation.py`**: 生成物の構造・件数・章数・依存関係を検証
+- **`src/batch.py`**: 複数の独立した実行とバッチサマリーを提供
+- **`src/checkpoint_manager.py`**: 原子保存、gzip、破損時の有効世代へのフォールバック、世代保持
+
 ---
 
 ## 設定ファイル
@@ -155,6 +170,8 @@
 ### ✅ 開発者向け
 - **setup_check.py**: セットアップ検証スクリプト
 - **example_run.py**: 実行例スクリプト
+- **`--runs N`**: 複数周回の一括実行
+- **`--seed`**: 実行またはバッチのseed固定
 - **tests/**: ユニットテスト
 
 ---
@@ -186,6 +203,7 @@
 ### ✅ ユニットテスト
 - **test_ollama_client.py**: OllamaClient のテスト
 - **test_pipeline.py**: Pipeline のテスト
+- **test_checkpoint_manager.py / test_validation.py / test_batch.py**: 実行管理・検証のテスト
 - **実行**: `pytest tests/ -v`
 
 ---
@@ -209,13 +227,13 @@
 | フェーズ | 呼び出し回数 | 推定時間（GPU） | 推定時間（CPU） |
 |----------|-------------|---------------|---------------|
 | Phase 0 | 1回 | 1〜2分 | 3〜5分 |
-| Phase 1 | 5回 | 5〜10分 | 15〜25分 |
+| Phase 1 | 17回（100件リストを20件ずつ分割） | 15〜35分 | 30〜90分 |
 | Phase 2 | 1回 | 1〜2分 | 3〜5分 |
-| Phase 3 | 10回 | 10〜20分 | 30〜50分 |
+| Phase 3 | 14回（people_listを20件ずつ分割） | 10〜20分 | 30〜50分 |
 | Phase 4 | 31回 | 30〜60分 | 1.5〜3時間 |
 | Phase 5 | 10回 | 20〜40分 | 1〜2時間 |
 | Phase 6 | 17回 | 15〜30分 | 45分〜1.5時間 |
-| **合計** | **75回** | **1.5〜3時間** | **4〜8時間** |
+| **合計** | **91回** | **2〜4時間** | **5〜10時間** |
 
 ---
 
@@ -260,11 +278,11 @@ python example_run.py
 
 ## 既知の制限事項
 
-1. **コンテキスト長**: 8,192トークン（v1.2より短い）
-2. **生成トークン数**: 4,096トークン/リクエスト（v1.2は16,000）
+1. **コンテキスト長**: 32,768トークン（モデルが対応する範囲で設定）
+2. **生成トークン数**: フェーズごとに設定（最大8,192トークン。v1.2は16,000）
 3. **出力品質**: GPT-4/Claudeよりやや劣る
 4. **処理速度**: ハードウェアに依存（GPU推奨）
-5. **画像入力**: 非対応（テキストのみ）
+5. **画像入力**: Ollamaのvision対応モデルを別途指定する必要がある
 
 ---
 
@@ -273,7 +291,7 @@ python example_run.py
 ### 短期（v2.1〜v2.3）
 - [ ] Web UI（Streamlit/Gradio）
 - [ ] リアルタイム進捗表示
-- [ ] モデル選択機能
+- [x] 役割別モデル選択機能
 - [ ] 出力品質評価
 
 ### 中期（v2.4〜v2.6）
@@ -319,5 +337,5 @@ Overall: ████████████████████ 100% COMPL
 ---
 
 **Status**: ✅ Ready for Production
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-08-29
 **Author**: masa-jp-art
